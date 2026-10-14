@@ -1,0 +1,66 @@
+{
+  "generated_by": "aeneas-factory bin/ai-image",
+  "created": "2026-10-14T16:14:21+02:00",
+  "seconds": 166.9,
+  "output": "chest-blue.png",
+  "output_sha256": "0e6041a30b42d99b11ddafe92ae15a591f176a028cfb1e11fb456d840b8420ff",
+  "models": [
+    {
+      "id": "flux2-klein-4b",
+      "name": "FLUX.2 [klein] 4B",
+      "upstream": "https://huggingface.co/black-forest-labs/FLUX.2-klein-4B",
+      "licence": "Apache-2.0",
+      "commercial_output": "yes"
+    },
+    {
+      "id": "z-image-turbo",
+      "name": "Z-Image Turbo",
+      "upstream": "https://huggingface.co/Tongyi-MAI/Z-Image-Turbo",
+      "licence": "Apache-2.0",
+      "commercial_output": "yes"
+    }
+  ],
+  "prompt": "paint the wooden planks of the chest a deep blue, keep the iron bands, the brass lock and the white background",
+  "seed": 11,
+  "params": {
+    "width": 1024,
+    "height": 1024,
+    "steps": 4,
+    "cfg": 1.0
+  },
+  "inputs": [
+    {
+      "file": "chest.png",
+      "sha256": "9813f87eb60d3bc8f0df630b31bee6cb99b1cfb7a1105d7d4fdf9253275a4722"
+    }
+  ],
+  "command": [
+    "aeneas-factory/tools/stable-diffusion.cpp/build/bin/sd-cli",
+    "--diffusion-model",
+    "aeneas-factory/models/flux2-klein-4b/flux-2-klein-4b-Q8_0.gguf",
+    "--llm",
+    "aeneas-factory/models/z-image-turbo/Qwen3-4B-Instruct-2507-Q8_0.gguf",
+    "--vae",
+    "aeneas-factory/models/flux2-klein-4b/flux2_vae.safetensors",
+    "-p",
+    "paint the wooden planks of the chest a deep blue, keep the iron bands, the brass lock and the white background",
+    "--cfg-scale",
+    "1.0",
+    "--steps",
+    "4",
+    "-W",
+    "1024",
+    "-H",
+    "1024",
+    "--seed",
+    "11",
+    "-o",
+    "chest-blue.png",
+    "-r",
+    "chest.png",
+    "--backend",
+    "vae=cpu"
+  ],
+  "machine": "Darwin arm64",
+  "note": "Made with a generative model. Credit and disclose as your project or store requires."
+}

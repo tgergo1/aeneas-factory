@@ -1,0 +1,44 @@
+{
+  "generated_by": "aeneas-factory bin/ai-sfx",
+  "created": "2026-10-14T16:42:31+02:00",
+  "seconds": 114.7,
+  "output": "chest-creak.wav",
+  "output_sha256": "134df95225fbef958737582757e4572d86ac00fa91ef5b49dd9c7d70d5b87761",
+  "models": [
+    {
+      "id": "moss-sfx",
+      "name": "MOSS-SoundEffect v2.0 (MLX bf16)",
+      "upstream": "https://huggingface.co/OpenMOSS-Team/MOSS-SoundEffect-v2.0",
+      "licence": "Apache-2.0",
+      "commercial_output": "yes"
+    }
+  ],
+  "prompt": "an old wooden chest lid creaks open slowly, then thuds shut",
+  "seed": 3,
+  "params": {
+    "seconds": 5.0,
+    "steps": 100,
+    "cfg": 4.0,
+    "sample_rate": 48000
+  },
+  "command": [
+    "aeneas-factory/tools/moss-soundeffect-mlx/.venv/bin/python",
+    "aeneas-factory/tools/moss-soundeffect-mlx/scripts/generate.py",
+    "--prompt",
+    "an old wooden chest lid creaks open slowly, then thuds shut",
+    "--seconds",
+    "5.0",
+    "--steps",
+    "100",
+    "--cfg",
+    "4.0",
+    "--seed",
+    "3",
+    "--model-dir",
+    "aeneas-factory/models/moss-sfx",
+    "--out",
+    "chest-creak.wav"
+  ],
+  "machine": "Darwin arm64",
+  "note": "Made with a generative model. Credit and disclose as your project or store requires."
+}

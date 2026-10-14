@@ -1,0 +1,43 @@
+{
+  "generated_by": "aeneas-factory bin/ai-3d",
+  "created": "2026-10-14T16:18:12+02:00",
+  "seconds": 1451.1,
+  "output": "chest.glb",
+  "output_sha256": "6ca89977e73a921c0935ec00c4ac29cc1e1e15cb39d23a23ff55387f4bceb82c",
+  "models": [
+    {
+      "id": "trellis2",
+      "name": "TRELLIS.2 4B",
+      "upstream": "https://huggingface.co/microsoft/TRELLIS.2-4B",
+      "licence": "MIT (TRELLIS.2, BiRefNet); DINOv3 License (Meta) for dinov3.gguf",
+      "commercial_output": "check: TRELLIS.2 and BiRefNet are MIT; read the DINOv3 License before shipping"
+    }
+  ],
+  "seed": 1,
+  "params": {
+    "res": "1024",
+    "texture": true,
+    "bg_removal": "auto"
+  },
+  "inputs": [
+    {
+      "file": "chest.png",
+      "sha256": "9813f87eb60d3bc8f0df630b31bee6cb99b1cfb7a1105d7d4fdf9253275a4722"
+    }
+  ],
+  "command": [
+    "aeneas-factory/tools/trellis.cpp/build/trellis-cli",
+    "--image",
+    "chest.png",
+    "--output",
+    "chest.glb",
+    "--models",
+    "aeneas-factory/models/trellis2",
+    "--res",
+    "1024",
+    "--seed",
+    "1"
+  ],
+  "machine": "Darwin arm64",
+  "note": "Made with a generative model. Credit and disclose as your project or store requires."
+}

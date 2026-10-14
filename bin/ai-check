@@ -1,0 +1,121 @@
+#!/usr/bin/env python3
+"""Health check: run it after installing, and after a macOS, Homebrew or Python update.
+
+  ai-check              tools, model files (sizes), and a tiny job through every installed generator
+  ai-check --quick      everything except the generation jobs
+  ai-check --full       also the SHA-256 of every model file (a few minutes)
+  ai-check --skip 3d    leave out one job (image, klein, sfx, 3d); repeatable
+  ai-check --keep DIR   keep the test outputs in DIR (default: a temporary folder, removed)
+
+A generator whose tool or model is not installed is skipped, not failed. Exits non-zero on a failure.
+"""
+import argparse
+import os
+import platform
+import shutil
+import subprocess
+import sys
+import tempfile
+import time
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import _ailib as ai  # noqa: E402
+
+BIN = Path(__file__).resolve().parent
+results = []
+
+
+def report(state, name, detail=""):
+    results.append(state)
+    print(f"{state:4}  {name}{'  ' + detail if detail else ''}", flush=True)
+
+
+def check_platform():
+    mac_arm = platform.system() == "Darwin" and platform.machine() == "arm64"
+    report("PASS" if mac_arm else "WARN", "macOS on Apple Silicon", f"{platform.system()} {platform.machine()}")
+
+
+def check_tools():
+    for name, path, target in [("sd-cli", ai.SD_CLI, "sd"), ("trellis-cli", ai.TRELLIS_CLI, "trellis"),
+                               ("MOSS Python env", ai.MOSS_PY, "moss")]:
+        ok = path.exists() and os.access(path, os.X_OK)
+        report("PASS" if ok else "SKIP", f"{name}", ai.portable(path) if ok else f"not built: make {target}")
+    if ai.MOSS_PY.exists():
+        r = subprocess.run([str(ai.MOSS_PY), "-c", "import moss_sfx_mlx.pipeline_mlx"], capture_output=True, text=True)
+        report("PASS" if r.returncode == 0 else "FAIL", "MOSS package imports",
+               "" if r.returncode == 0 else (r.stderr.strip().splitlines() or [""])[-1])
+    for name, path in [("Blender (optional)", "/Applications/Blender.app/Contents/MacOS/Blender"),
+                       ("GIMP (optional)", "/Applications/GIMP.app/Contents/MacOS/gimp"),
+                       ("ffmpeg (optional)", shutil.which("ffmpeg") or "")]:
+        found = bool(path) and Path(path).exists()
+        report("PASS" if found else "INFO", name, path if found else "not installed")
+
+
+def check_models(full):
+    r = subprocess.run([sys.executable, str(BIN / "ai-models"), "verify"] + (["--full"] if full else []),
+                       capture_output=True, text=True)
+    for line in r.stdout.splitlines()[:-1]:
+        state, rest = line[:6].strip(), line[6:].strip()
+        report({"ok": "PASS", "-": "SKIP"}.get(state, "FAIL"), f"model {rest}")
+
+
+def job(name, needs, cmd, out):
+    missing = [n for n in needs if not (Path(n).exists() if "/" in str(n) else ai.is_downloaded(n))]
+    if missing:
+        report("SKIP", name, "needs " + ", ".join(ai.portable(m) if "/" in str(m) else m for m in missing))
+        return False
+    t = time.time()
+    r = subprocess.run([sys.executable, *map(str, cmd)], capture_output=True, text=True)
+    side = Path(str(out) + ".json")
+    ok = r.returncode == 0 and out.exists() and out.stat().st_size > 1000 and side.exists()
+    report("PASS" if ok else "FAIL", name, f"{time.time() - t:.0f} s" if ok else (r.stderr or r.stdout).strip()[-600:])
+    return ok
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("--quick", action="store_true")
+    ap.add_argument("--full", action="store_true")
+    ap.add_argument("--skip", action="append", default=[], choices=["image", "klein", "sfx", "3d"])
+    ap.add_argument("--keep", help="folder for the test outputs")
+    a = ap.parse_args()
+
+    check_platform()
+    check_tools()
+    check_models(a.full)
+
+    if not a.quick:
+        tmp = Path(a.keep).resolve() if a.keep else Path(tempfile.mkdtemp(prefix="ai-check-"))
+        tmp.mkdir(parents=True, exist_ok=True)
+        img = tmp / "image.png"
+        if "image" not in a.skip or "3d" not in a.skip:
+            job("ai-image  z-image-turbo, 512 px, 4 steps", [ai.SD_CLI, "z-image-turbo"],
+                [BIN / "ai-image", "a single wooden stool on a plain white background, studio photo",
+                 "--size", "512", "--steps", "4", "--seed", "1", "-o", img], img)
+        if "klein" not in a.skip:
+            out = tmp / "klein.png"
+            job("ai-image  flux2-klein-4b, 512 px, 4 steps", [ai.SD_CLI, "flux2-klein-4b", "z-image-turbo"],
+                [BIN / "ai-image", "a red apple on a wooden table", "--model", "flux2-klein-4b",
+                 "--size", "512", "--steps", "4", "--seed", "1", "-o", out], out)
+        if "sfx" not in a.skip:
+            out = tmp / "sfx.wav"
+            job("ai-sfx    2 s, 10 steps", [ai.MOSS_PY, "moss-sfx"],
+                [BIN / "ai-sfx", "a wooden door knocks twice", "--seconds", "2", "--steps", "10", "--seed", "1",
+                 "-o", out], out)
+        if "3d" not in a.skip:
+            out = tmp / "model.glb"
+            job("ai-3d     res 512, from the test image (a few minutes)", [ai.TRELLIS_CLI, "trellis2", img],
+                [BIN / "ai-3d", img, "--res", "512", "--seed", "1", "-o", out], out)
+        if a.keep:
+            print(f"outputs kept in {ai.portable(tmp)}")
+        else:
+            shutil.rmtree(tmp, ignore_errors=True)
+
+    n = {s: results.count(s) for s in ("PASS", "FAIL", "SKIP", "WARN")}
+    print(f"\n{n['PASS']} passed, {n['FAIL']} failed, {n['SKIP']} skipped" + (f", {n['WARN']} warning(s)" if n["WARN"] else ""))
+    sys.exit(1 if n["FAIL"] else 0)
+
+
+if __name__ == "__main__":
+    main()

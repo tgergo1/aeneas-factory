@@ -1,0 +1,154 @@
+#!/usr/bin/env python3
+"""The model register (models.json): what the factory uses, under which licence, and getting it.
+
+  ai-models list                       every model: size, licence, what it does, downloaded or not
+  ai-models find sound                 models whose id, name or capabilities match
+  ai-models show trellis2              one model in full
+  ai-models download all               download every model (about 40 GB), checking each SHA-256
+  ai-models download image             a group: image, 3d or sound
+  ai-models download moss-sfx          one model (its requirements come along)
+  ai-models verify [--full] [ID...]    files present with the right size; --full also checks SHA-256
+
+Downloads resume where they stopped, land as <file>.part and are renamed only once the
+checksum matches. Every URL is pinned to a Hugging Face commit, so a file never changes under you.
+"""
+import argparse
+import json
+import os
+import shutil
+import subprocess
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import _ailib as ai  # noqa: E402
+
+
+def gb(n):
+    return f"{n / 1e9:5.1f} GB"
+
+
+def size_of(m):
+    return sum(f["bytes"] for f in m["files"])
+
+
+def cmd_list(reg, a):
+    total = 0
+    for m in reg["models"]:
+        here = ai.is_downloaded(m["id"])
+        total += size_of(m)
+        print(f"{'●' if here else '○'} {m['id']:16} {gb(size_of(m))}  {m['group']:6} {m['licence'][:40]:40}  {m['summary'][:60]}")
+    print(f"\n● downloaded  ○ not downloaded   ({gb(total).strip()} for all)")
+
+
+def cmd_find(reg, a):
+    q = a.text.lower()
+    for m in reg["models"]:
+        if q in json.dumps([m["id"], m["name"], m["group"], m["capabilities"], m["summary"]]).lower():
+            print(f"{m['id']:16} {m['command']:34} {m['summary']}")
+
+
+def cmd_show(reg, a):
+    print(json.dumps(ai.model(a.id), indent=2))
+
+
+def selection(reg, names):
+    groups = {m["group"] for m in reg["models"]}
+    ids = []
+    for n in names:
+        if n == "all":
+            ids += [m["id"] for m in reg["models"]]
+        elif n in groups:
+            ids += [m["id"] for m in reg["models"] if m["group"] == n]
+        else:
+            ids.append(ai.model(n)["id"])
+    out = []
+    for i in ids:  # requirements first, no repeats
+        for r in ai.model(i).get("requires", []) + [i]:
+            if r not in out:
+                out.append(r)
+    return out
+
+
+def check_file(m, f, full):
+    p = ai.ROOT / m["path"] / f["path"]
+    if not p.exists():
+        return "missing"
+    if p.stat().st_size != f["bytes"]:
+        return "wrong size"
+    if full and ai.sha256(p) != f["sha256"]:
+        return "wrong sha256"
+    return "ok"
+
+
+def cmd_verify(reg, a):
+    bad = 0
+    for m in reg["models"]:
+        if a.ids and m["id"] not in a.ids:
+            continue
+        states = [(f, check_file(m, f, a.full)) for f in m["files"]]
+        problems = [(f, s) for f, s in states if s != "ok"]
+        if len(problems) == len(states) and all(s == "missing" for _, s in problems) and not a.ids:
+            print(f"-      {m['id']} (not downloaded)")
+            continue
+        for f, s in problems:
+            print(f"FAIL   {m['id']}: {f['path']} {s}")
+        bad += len(problems)
+        if not problems:
+            print(f"ok     {m['id']} ({len(states)} files, {'sha256' if a.full else 'sizes'})")
+    print("all good" if not bad else f"{bad} problem(s): `ai-models download <id>` fetches what is missing")
+    sys.exit(1 if bad else 0)
+
+
+def free_bytes(path):
+    path.mkdir(parents=True, exist_ok=True)
+    return shutil.disk_usage(path).free
+
+
+def cmd_download(reg, a):
+    ids = selection(reg, a.names)
+    todo = [(ai.model(i), f) for i in ids for f in ai.model(i)["files"] if check_file(ai.model(i), f, False) != "ok"]
+    need = sum(f["bytes"] for _, f in todo)
+    print(f"{len(ids)} model(s): {', '.join(ids)}; {len(todo)} file(s) to fetch, {gb(need).strip()}")
+    if not todo:
+        return
+    free = free_bytes(ai.ROOT / "models")
+    if need > free - 2e9 and not a.force:
+        sys.exit(f"Only {gb(free).strip()} free on this disk; {gb(need).strip()} is needed. Free space or pass --force.")
+    if not shutil.which("curl"):
+        sys.exit("curl is needed to download.")
+    for m, f in todo:
+        dest = ai.ROOT / m["path"] / f["path"]
+        part = dest.with_name(dest.name + ".part")
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        print(f"\n{m['id']}: {f['path']} ({gb(f['bytes']).strip()})", flush=True)
+        r = subprocess.run(["curl", "-L", "--fail", "--retry", "5", "--retry-delay", "5", "-C", "-",
+                            "--progress-bar", "-o", str(part), f["url"]])
+        if r.returncode not in (0, 33):  # 33: the server would not resume a finished file
+            sys.exit(f"download failed (curl exit {r.returncode}); run the same command again to resume")
+        got = ai.sha256(part)
+        if got != f["sha256"]:
+            part.unlink()
+            sys.exit(f"checksum mismatch for {f['path']}: expected {f['sha256']}, got {got}. The partial file was removed.")
+        os.replace(part, dest)
+        print("  sha256 ok")
+    print("\ndone")
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    sub = ap.add_subparsers(dest="cmd", required=True)
+    sub.add_parser("list")
+    p = sub.add_parser("find"); p.add_argument("text")
+    p = sub.add_parser("show"); p.add_argument("id")
+    p = sub.add_parser("download", aliases=["restore"]); p.add_argument("names", nargs="+")
+    p.add_argument("--force", action="store_true", help="download even if the disk looks too full")
+    p = sub.add_parser("verify"); p.add_argument("ids", nargs="*"); p.add_argument("--full", action="store_true")
+    a = ap.parse_args()
+    cmd = {"restore": "download"}.get(a.cmd, a.cmd)
+    {"list": cmd_list, "find": cmd_find, "show": cmd_show, "download": cmd_download, "verify": cmd_verify}[cmd](
+        ai.register(), a)
+
+
+if __name__ == "__main__":
+    main()

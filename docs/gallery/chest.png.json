@@ -1,0 +1,51 @@
+{
+  "generated_by": "aeneas-factory bin/ai-image",
+  "created": "2026-10-14T16:11:12+02:00",
+  "seconds": 189.1,
+  "output": "chest.png",
+  "output_sha256": "9813f87eb60d3bc8f0df630b31bee6cb99b1cfb7a1105d7d4fdf9253275a4722",
+  "models": [
+    {
+      "id": "z-image-turbo",
+      "name": "Z-Image Turbo",
+      "upstream": "https://huggingface.co/Tongyi-MAI/Z-Image-Turbo",
+      "licence": "Apache-2.0",
+      "commercial_output": "yes"
+    }
+  ],
+  "prompt": "a weathered wooden treasure chest with iron bands and a brass lock, a single object centred on a plain white background, soft studio light, product photo",
+  "seed": 11,
+  "params": {
+    "width": 1024,
+    "height": 1024,
+    "steps": 8,
+    "cfg": 1.0
+  },
+  "command": [
+    "aeneas-factory/tools/stable-diffusion.cpp/build/bin/sd-cli",
+    "--diffusion-model",
+    "aeneas-factory/models/z-image-turbo/z_image_turbo-Q8_0.gguf",
+    "--llm",
+    "aeneas-factory/models/z-image-turbo/Qwen3-4B-Instruct-2507-Q8_0.gguf",
+    "--vae",
+    "aeneas-factory/models/z-image-turbo/ae.safetensors",
+    "-p",
+    "a weathered wooden treasure chest with iron bands and a brass lock, a single object centred on a plain white background, soft studio light, product photo",
+    "--cfg-scale",
+    "1.0",
+    "--steps",
+    "8",
+    "-W",
+    "1024",
+    "-H",
+    "1024",
+    "--seed",
+    "11",
+    "-o",
+    "chest.png",
+    "--backend",
+    "vae=cpu"
+  ],
+  "machine": "Darwin arm64",
+  "note": "Made with a generative model. Credit and disclose as your project or store requires."
+}

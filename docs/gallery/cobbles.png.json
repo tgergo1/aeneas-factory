@@ -1,0 +1,53 @@
+{
+  "generated_by": "aeneas-factory bin/ai-image",
+  "created": "2026-10-14T16:47:53+02:00",
+  "seconds": 36.6,
+  "output": "cobbles.png",
+  "output_sha256": "b71bab41fbacf589127d5dd4fb38f61c7cb184f942c3c3a8b9020245305ad081",
+  "models": [
+    {
+      "id": "z-image-turbo",
+      "name": "Z-Image Turbo",
+      "upstream": "https://huggingface.co/Tongyi-MAI/Z-Image-Turbo",
+      "licence": "Apache-2.0",
+      "commercial_output": "yes"
+    }
+  ],
+  "prompt": "rounded grey river cobblestones packed tightly together, green moss growing in the gaps between the stones, seen from directly above, soft overcast daylight, photographic ground texture",
+  "seed": 21,
+  "params": {
+    "width": 512,
+    "height": 512,
+    "steps": 8,
+    "cfg": 1.0,
+    "tile": true
+  },
+  "command": [
+    "aeneas-factory/tools/stable-diffusion.cpp/build/bin/sd-cli",
+    "--diffusion-model",
+    "aeneas-factory/models/z-image-turbo/z_image_turbo-Q8_0.gguf",
+    "--llm",
+    "aeneas-factory/models/z-image-turbo/Qwen3-4B-Instruct-2507-Q8_0.gguf",
+    "--vae",
+    "aeneas-factory/models/z-image-turbo/ae.safetensors",
+    "-p",
+    "rounded grey river cobblestones packed tightly together, green moss growing in the gaps between the stones, seen from directly above, soft overcast daylight, photographic ground texture",
+    "--cfg-scale",
+    "1.0",
+    "--steps",
+    "8",
+    "-W",
+    "512",
+    "-H",
+    "512",
+    "--seed",
+    "21",
+    "-o",
+    "cobbles.png",
+    "--circular",
+    "--backend",
+    "vae=cpu"
+  ],
+  "machine": "Darwin arm64",
+  "note": "Made with a generative model. Credit and disclose as your project or store requires."
+}

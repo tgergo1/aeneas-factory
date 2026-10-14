@@ -1,0 +1,51 @@
+#!/usr/bin/env python3
+"""Make a sound effect from a description with MOSS-SoundEffect v2.0 (MLX, 48 kHz, up to 30 s).
+
+  ai-sfx "a heavy wooden door creaks open slowly" -o door.wav
+  ai-sfx "rain on a tin roof, steady" --seconds 12 --seed 4 -o rain.wav
+  ai-sfx "..." --steps 30 -o quick.wav        # rougher, about three times faster
+
+Writes out.wav, out.wav.json (model, licence, prompt, seed, settings) and out.wav.log.
+A take costs about the same whatever its length; the very first run also compiles Metal shaders.
+"""
+import argparse
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import _ailib as ai  # noqa: E402
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("prompt")
+    ap.add_argument("-o", "--out", required=True, help="output .wav")
+    ap.add_argument("--seconds", type=float, default=5.0)
+    ap.add_argument("--steps", type=int, default=100)
+    ap.add_argument("--cfg", type=float, default=4.0)
+    ap.add_argument("--seed", type=int)
+    ap.add_argument("--cpu", action="store_true", help="run on the CPU instead of the GPU")
+    a = ap.parse_args()
+
+    ai.require_tool(ai.MOSS_PY, "moss")
+    ai.require_model("moss-sfx")
+    out = Path(a.out).resolve()
+    out.parent.mkdir(parents=True, exist_ok=True)
+    seed = a.seed if a.seed is not None else ai.new_seed()
+
+    cmd = [ai.MOSS_PY, ai.MOSS_GENERATE, "--prompt", a.prompt, "--seconds", str(a.seconds), "--steps", str(a.steps),
+           "--cfg", str(a.cfg), "--seed", str(seed), "--model-dir", ai.model_path("moss-sfx"), "--out", out]
+    if a.cpu:
+        cmd += ["--cpu"]
+
+    started = ai.now()
+    ai.run(cmd, out.with_name(out.name + ".log"), env={"PYTHONDONTWRITEBYTECODE": "1"})
+    if not out.exists() or out.stat().st_size < 1000:
+        sys.exit(f"the generator finished but wrote no sound at {ai.portable(out)}")
+    side = ai.write_sidecar(out, "ai-sfx", ["moss-sfx"], cmd, started, prompt=a.prompt, seed=seed,
+                            params={"seconds": a.seconds, "steps": a.steps, "cfg": a.cfg, "sample_rate": 48000})
+    print(f"{ai.portable(out)}  ({ai.portable(side)})")
+
+
+if __name__ == "__main__":
+    main()
