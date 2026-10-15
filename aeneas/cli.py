@@ -284,6 +284,11 @@ def cmd_service(a):
             print("stopped")
         else:
             print("not running")
+    elif a.action == "autostart":
+        if a.state in ("on", "off"):
+            print(service.autostart(a.state == "on"))
+        else:
+            print(service.autostart_status())
     elif a.action == "jobs":
         c = service.running()
         if not c:
@@ -380,11 +385,15 @@ def main(argv=None):
     p = sub.add_parser("style", help="style packs: list, show NAME")
     p.add_argument("action", choices=["list", "show"]); p.add_argument("name", nargs="?"); p.set_defaults(func=cmd_style)
 
-    p = sub.add_parser("service", help="the factory service: start, status, stop, jobs")
-    p.add_argument("action", choices=["start", "status", "stop", "jobs"]); p.set_defaults(func=cmd_service)
+    p = sub.add_parser("service", help="the factory service: start, status, stop, jobs, autostart on|off")
+    p.add_argument("action", choices=["start", "status", "stop", "jobs", "autostart"])
+    p.add_argument("state", nargs="?", choices=["on", "off"], help="with autostart: start at login or not")
+    p.set_defaults(func=cmd_service)
 
     p = sub.add_parser("serve", help="run the factory service in the foreground")
-    p.add_argument("--port", type=int); p.set_defaults(func=lambda a: service.serve(a.port))
+    p.add_argument("--port", type=int)
+    p.add_argument("--idle-exit", type=int, help="stop after this many idle minutes (default 30; 0 = never)")
+    p.set_defaults(func=lambda a: service.serve(a.port, a.idle_exit))
 
     p = sub.add_parser("mcp", help="run the MCP server on stdio (for agents)")
     p.set_defaults(func=lambda a: __import__("aeneas.mcp_server", fromlist=["main"]).main())

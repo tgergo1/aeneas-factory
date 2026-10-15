@@ -111,7 +111,7 @@ Tools: `capabilities`, `generate_image`, `edit_image`, `make_texture`, `image_to
 | `aen models list / find / show / download / verify` | The model register; `download` takes `all`, a group or ids, and `--accept KEY` |
 | `aen library search / import / show / credits / prune` | The asset library |
 | `aen policy init / show` · `aen style list / show` | Licence policy · style packs |
-| `aen service start / status / stop / jobs` · `aen mcp` | The factory service · the MCP server on stdio |
+| `aen service start / status / stop / jobs / autostart on\|off` · `aen mcp` | The factory service (and starting it at login) · the MCP server on stdio |
 | `aen check` | Health check: tools, every model file, and a real job through each generator |
 
 ## Recipes, styles, policy and the library
@@ -186,6 +186,21 @@ Measured on the M5 Pro:
 
 The sound model needs about 14 GB of GPU memory; the service unloads it after five idle minutes.
 
+## Resources and start-up
+
+| Part | Runs | Idle cost (measured) |
+|---|---|---|
+| MCP server (`aen mcp`) | one per agent app or session, started and stopped by that app | 15 MB, no CPU |
+| Factory service | at login if `aen service autostart on` (stays running); otherwise from the first tool call, stopping after 30 idle minutes | 42 MB, no CPU |
+| Scoring worker (SigLIP, CLAP) | from the first ranking or search by meaning; exits after 5 idle minutes | about 400 MB while loaded, then nothing |
+| Sound model worker (MOSS) | from the first sound job; exits after 5 idle minutes | about 14 GB of GPU memory while loaded |
+| Image and 3D tools | only while a job runs | about 10 GB (images), 16 GB or more (3D) during the job |
+
+```bash
+aen service autostart on     # start the service at login (a LaunchAgent); "off" to remove it
+aen service status           # pid, idle time, which models are loaded
+```
+
 ## Security
 
 The service listens on 127.0.0.1 only. Every request needs the token in `~/.aeneas/service.json`, which only you can read. Requests with a browser `Origin` header, or a `Host` other than localhost, are refused, so web pages cannot drive it. It runs only the factory's own operations and recipes, reads inputs and writes outputs only under your home folder and never inside the factory, and never downloads anything. Model downloads go through `aen models download`, which checks every file's SHA-256 against [`models.json`](models.json). One scoring model (CLAP) exists only as a PyTorch pickle; it is pinned by SHA-256 and loaded with weights-only loading.
@@ -193,7 +208,7 @@ The service listens on 127.0.0.1 only. Every request needs the token in `~/.aene
 ## Development
 
 ```bash
-make test           # 29 tests, no models or GPU needed
+make test           # 32 tests, no models or GPU needed
 python scripts/gen_docs.py --check    # the docs agree with models.json
 .venv/bin/python scripts/mcp_smoke.py ~/some/project    # the MCP path end to end
 ```

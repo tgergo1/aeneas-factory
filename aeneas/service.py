@@ -29,6 +29,9 @@ from .paths import FACTORY_PY, ROOT, STATE
 INFO = STATE / "service.json"
 JOBS = STATE / "jobs"
 DEFAULT_PORT = 7861
+IDLE_EXIT_MINUTES = 30  # a service started on demand stops after this long without work; 0 = never
+AGENT_LABEL = "com.aeneas-factory.service"
+AGENT_PLIST = Path.home() / "Library" / "LaunchAgents" / f"{AGENT_LABEL}.plist"
 PATH_ARGS = {"src", "init", "image"}
 LIST_PATH_ARGS = {"refs"}
 
@@ -57,11 +60,23 @@ class Factory:
     def __init__(self):
         self.jobs, self.order = {}, []
         self.q = queue.Queue()
+        self.last_activity = time.time()
+        self.idle_exit_minutes = 0
         threading.Thread(target=self._work, daemon=True).start()
+
+    def touch(self):
+        self.last_activity = time.time()
+
+    def busy(self):
+        return any(j.status in ("queued", "running") for j in self.jobs.values())
+
+    def idle_seconds(self):
+        return 0.0 if self.busy() else time.time() - self.last_activity
 
     def submit(self, kind, spec):
         check_spec(kind, spec)
         job = Job(kind, spec)
+        self.touch()
         self.jobs[job.id] = job
         self.order.append(job.id)
         job.save()
@@ -95,6 +110,7 @@ class Factory:
             job.finished = time.time()
             job.save()
             job.done.set()
+            self.touch()
 
     def cancel(self, job_id):
         job = self.jobs[job_id]
@@ -167,10 +183,16 @@ def make_handler(factory, token, port):
             u = urlparse(self.path)
             q = {k: v[0] for k, v in parse_qs(u.query).items()}
             parts = [p for p in u.path.split("/") if p]
+            if parts != ["health"]:
+                factory.touch()
             try:
                 if parts == ["health"]:
+                    from . import scoring
                     return self._send(200, {"ok": True, "version": __version__, "pid": os.getpid(),
-                                            "queued": sum(j.status == "queued" for j in factory.jobs.values())})
+                                            "queued": sum(j.status == "queued" for j in factory.jobs.values()),
+                                            "idle_seconds": round(factory.idle_seconds()),
+                                            "idle_exit_minutes": factory.idle_exit_minutes,
+                                            "models_loaded": scoring.loaded() + (["moss-sfx"] if _moss_loaded() else [])})
                 if parts == ["jobs"]:
                     ids = factory.order[-int(q.get("limit", 20)):]
                     return self._send(200, [factory.jobs[i].public() for i in reversed(ids)])
@@ -218,19 +240,44 @@ def make_handler(factory, token, port):
     return H
 
 
-def serve(port=None):
+def _moss_loaded():
+    from .engines import moss
+    return bool(moss._worker and moss._worker.proc and moss._worker.proc.poll() is None)
+
+
+def serve(port=None, idle_exit=None):
+    """Run the service. idle_exit: minutes without work before it stops by itself (0 = never)."""
+    if running():
+        print("the factory service is already running", flush=True)
+        return
     port = int(port or os.environ.get("AEN_PORT", DEFAULT_PORT))
+    idle_exit = IDLE_EXIT_MINUTES if idle_exit is None else int(idle_exit)
     STATE.mkdir(parents=True, exist_ok=True)
     token = secrets.token_urlsafe(32)
-    server = ThreadingHTTPServer(("127.0.0.1", port), make_handler(Factory(), token, port))
+    factory = Factory()
+    factory.idle_exit_minutes = idle_exit
+    server = ThreadingHTTPServer(("127.0.0.1", port), make_handler(factory, token, port))
+    if idle_exit > 0:
+        def watch():
+            while True:
+                time.sleep(30)
+                if factory.idle_seconds() > idle_exit * 60:
+                    print(f"idle for {idle_exit} minutes: stopping (the next request starts it again)", flush=True)
+                    server.shutdown()
+                    return
+        threading.Thread(target=watch, daemon=True).start()
     fd = os.open(INFO, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
     with os.fdopen(fd, "w") as f:
         json.dump({"port": port, "token": token, "pid": os.getpid(), "version": __version__}, f)
-    print(f"aeneas-factory service on 127.0.0.1:{port} (pid {os.getpid()})", flush=True)
+    print(f"aeneas-factory service on 127.0.0.1:{port} (pid {os.getpid()}, "
+          f"{'stops after ' + str(idle_exit) + ' idle minutes' if idle_exit else 'stays running'})", flush=True)
     try:
         server.serve_forever()
     finally:
         INFO.unlink(missing_ok=True)
+        if _moss_loaded():
+            from .engines import moss
+            moss._worker.stop()
 
 
 # ---------------------------------------------------------------- client
@@ -278,3 +325,46 @@ def ensure_running(wait=30):
         if c:
             return c
     raise RuntimeError(f"the factory service did not start; see {STATE / 'service.log'}")
+
+
+# ---------------------------------------------------------------- start at login (macOS LaunchAgent)
+
+def autostart_plist():
+    import plistlib
+    return plistlib.dumps({
+        "Label": AGENT_LABEL,
+        "ProgramArguments": [str(ROOT / "bin" / "aen"), "serve", "--idle-exit", "0"],
+        "RunAtLoad": True,
+        "KeepAlive": {"SuccessfulExit": False},  # restart after a crash, not after a clean stop
+        "ProcessType": "Background",
+        "LowPriorityIO": True,
+        "StandardOutPath": str(STATE / "service.log"),
+        "StandardErrorPath": str(STATE / "service.log"),
+    })
+
+
+def autostart(on):
+    uid = os.getuid()
+    if on:
+        STATE.mkdir(parents=True, exist_ok=True)
+        AGENT_PLIST.parent.mkdir(parents=True, exist_ok=True)
+        subprocess.run(["launchctl", "bootout", f"gui/{uid}/{AGENT_LABEL}"], capture_output=True)
+        c = running()
+        if c:  # a service started on demand: replace it with the login one
+            c.request("POST", "/shutdown", {})
+            time.sleep(1)
+        AGENT_PLIST.write_bytes(autostart_plist())
+        r = subprocess.run(["launchctl", "bootstrap", f"gui/{uid}", str(AGENT_PLIST)], capture_output=True, text=True)
+        if r.returncode != 0:
+            raise RuntimeError(f"launchctl bootstrap failed: {r.stderr.strip()}")
+        return f"on: starts at login and stays running ({AGENT_PLIST})"
+    subprocess.run(["launchctl", "bootout", f"gui/{uid}/{AGENT_LABEL}"], capture_output=True)
+    AGENT_PLIST.unlink(missing_ok=True)
+    return "off: the service starts on demand and stops after 30 idle minutes"
+
+
+def autostart_status():
+    if not AGENT_PLIST.exists():
+        return "off (starts on demand, stops after 30 idle minutes)"
+    r = subprocess.run(["launchctl", "print", f"gui/{os.getuid()}/{AGENT_LABEL}"], capture_output=True, text=True)
+    return "on (starts at login)" + ("" if r.returncode == 0 else ", but not loaded right now")

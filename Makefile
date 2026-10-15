@@ -32,7 +32,7 @@ ACCEPT_FLAGS  := $(foreach a,$(ACCEPT),--accept $(a))
 
 .PHONY: help install all prereqs factory tools sd trellis moss scoring matte speech comfyui comfyui-run \
         models models-image models-3d models-sound models-scoring models-upscale models-matte models-speech \
-        models-extras extras check check-quick verify list test service-start service-stop mcp-info \
+        models-extras extras check check-quick verify list test service-start service-stop autostart autostart-off mcp-info \
         clean-tools distclean
 
 help: ## Show this list
@@ -152,6 +152,10 @@ service-start: ## Start the factory service (the MCP server also starts it on de
 	$(AEN) service start
 service-stop: ## Stop the factory service
 	$(AEN) service stop
+autostart: factory ## Start the factory service at login (a macOS LaunchAgent); it stays small when idle
+	$(AEN) service autostart on
+autostart-off: ## Stop starting the service at login
+	$(AEN) service autostart off
 mcp-info: ## Show how to register the MCP server with Claude Code and Codex
 	@echo "Claude Code:  claude mcp add --scope user aeneas -- $(CURDIR)/bin/aen mcp"
 	@echo "Codex:        codex mcp add aeneas -- $(CURDIR)/bin/aen mcp"

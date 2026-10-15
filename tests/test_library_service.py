@@ -110,3 +110,31 @@ def test_search_ignores_filler_words(tmp_path, noise_png):
     library.add_generated(f, {"models": [], "prompt": "a brass lantern on a table"})
     assert not [r for r in library.search("a car on a road") if r["path"] == str(f.resolve()) and not r.get("similarity")]
     assert [r for r in library.search("brass lantern") if r["path"] == str(f.resolve())]
+
+
+def test_idle_time_counts_only_without_work():
+    import time
+    f = service.Factory()
+    f.last_activity = time.time() - 100
+    assert f.idle_seconds() >= 99
+    job = service.Job("op", {})
+    job.status = "running"
+    f.jobs[job.id] = job
+    assert f.idle_seconds() == 0  # never idle while a job runs
+
+
+def test_scoring_check_does_not_load_torch():
+    import subprocess
+    import sys
+    code = "import sys; from aeneas import scoring; scoring.available('image'); print('torch' in sys.modules)"
+    out = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, cwd=str(service.ROOT),
+                         env={**__import__("os").environ, "PYTHONPATH": str(service.ROOT)}).stdout.strip()
+    assert out == "False"  # the service stays small; torch lives only in the scoring worker
+
+
+def test_login_agent_runs_the_service_without_idle_exit():
+    import plistlib
+    d = plistlib.loads(service.autostart_plist())
+    assert d["Label"] == service.AGENT_LABEL and d["RunAtLoad"] is True
+    assert d["ProgramArguments"][-3:] == ["serve", "--idle-exit", "0"]
+    assert d["KeepAlive"] == {"SuccessfulExit": False}

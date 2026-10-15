@@ -25,6 +25,8 @@ All three ways in end in the same function calls (`aeneas/ops.py`), so policy, c
 
 **One service, one queue.** Claude Code and Codex each start their own MCP server process; without a shared service, two agents would start two GPU jobs at once and run out of memory. The service runs one job at a time and the MCP servers are thin clients. The command line uses it too when it is running (`--local` to bypass).
 
+**Nothing heavy stays resident.** The service is small (about 42 MB) and holds no models itself: anything with torch or weights runs in a worker process that exits after five idle minutes, because a Python process does not give freed memory back to the system (measured: unloading SigLIP inside the service left it at 410 MB; as a separate worker it returns to nothing). Started at login (`aen service autostart on`, a LaunchAgent) the service stays running; started on demand it stops after 30 idle minutes, and the next request starts it again.
+
 **Keeping models loaded only where it pays.** Measured: an `sd-cli` image spends about 6 s of 110 s loading, the rest sampling and decoding, so a resident image server would save little and pin about 10 GB. The sound model is different, so it runs in a persistent MLX worker that unloads after five idle minutes.
 
 **Checks before success.** The Metal VAE decode of this stable-diffusion.cpp build returns blank white images (checked again 2026-10-15), and the first version of this repository reported them as successes. Every output now passes a check for its kind: image spread, tile seams, audio level, mesh vertex count and extent, cut-out coverage.
