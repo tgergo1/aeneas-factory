@@ -80,10 +80,11 @@ def _candidates(ctx, out, n, seed, make_one, score_fn, label):
     shutil.copy2(best["path"], out)
     listing = [{"file": portable(c["path"]), "path": str(c["path"]), "seed": c["seed"], "score": c.get("score"),
                 "failed": c.get("failed")} for c in made]
+    public = [{k: v for k, v in c.items() if k != "path"} for c in listing]  # records never hold absolute paths
     rec = dict(best["rec"], output=out.name,
                selection={"candidates": n, "passed_checks": len(good),
                           "ranked_by": ("CLIP" if out.suffix == ".png" else "CLAP") if scores else "first that passed",
-                          "chosen_seed": best["seed"], "all": listing})
+                          "chosen_seed": best["seed"], "all": public})
     return rec, listing
 
 

@@ -1,0 +1,107 @@
+{
+  "generated_by": "aeneas-factory bin/ai-texture",
+  "created": "2026-10-15T21:02:18+02:00",
+  "seconds": 26.6,
+  "output": "weathered-oak-planks_tile.png",
+  "prompt": "weathered oak planks, seen from directly above, flat even overcast light, no shadows, photographic ground texture, seamless",
+  "seed": 799352246,
+  "params": {
+    "model": "z-image-turbo",
+    "width": 512,
+    "height": 512,
+    "steps": 8,
+    "cfg": 1.0,
+    "tile": true
+  },
+  "models": [
+    {
+      "id": "z-image-turbo",
+      "name": "Z-Image Turbo",
+      "upstream": "https://huggingface.co/Tongyi-MAI/Z-Image-Turbo",
+      "licence": "Apache-2.0",
+      "licence_allows_commercial_use": "the licence allows it (model card; not legal advice)",
+      "files": [
+        {
+          "file": "z_image_turbo-Q8_0.gguf",
+          "sha256": "df1c5baa86d1398c979495a6072dbcee79444fdb884a2445582ba0769c44e9a1",
+          "url": "https://huggingface.co/leejet/Z-Image-Turbo-GGUF/resolve/c61c0e422dc8b541b7548cf33a4ef8302b0f8085/z_image_turbo-Q8_0.gguf"
+        },
+        {
+          "file": "Qwen3-4B-Instruct-2507-Q8_0.gguf",
+          "sha256": "391c1e410fd9f4cf2de2b510273b56a84c19ce18f4fa3bfb3774031dac4ef068",
+          "url": "https://huggingface.co/unsloth/Qwen3-4B-Instruct-2507-GGUF/resolve/a06e946bb6b655725eafa393f4a9745d460374c9/Qwen3-4B-Instruct-2507-Q8_0.gguf"
+        },
+        {
+          "file": "ae.safetensors",
+          "sha256": "afc8e28272cd15db3919bacdb6918ce9c1ed22e96cb12c4d5ed0fba823529e38",
+          "url": "https://huggingface.co/Comfy-Org/z_image_turbo/resolve/6fc90a3b1b653e935a0d175e260736de25b84df5/split_files/vae/ae.safetensors"
+        }
+      ]
+    }
+  ],
+  "versions": {
+    "aeneas-factory": "0.2.0 (14fa748610872b30bca1724cc0241e8ae833e44b+modified)",
+    "stable-diffusion.cpp": "59c23bce0d82be3a922023ab811194f05b3e2faa"
+  },
+  "command": [
+    "tools/stable-diffusion.cpp/build/bin/sd-cli",
+    "--diffusion-model",
+    "models/z-image-turbo/z_image_turbo-Q8_0.gguf",
+    "--llm",
+    "models/z-image-turbo/Qwen3-4B-Instruct-2507-Q8_0.gguf",
+    "--vae",
+    "models/z-image-turbo/ae.safetensors",
+    "-p",
+    "weathered oak planks, seen from directly above, flat even overcast light, no shadows, photographic ground texture, seamless",
+    "--cfg-scale",
+    "1.0",
+    "--steps",
+    "8",
+    "-W",
+    "512",
+    "-H",
+    "512",
+    "--seed",
+    "799352246",
+    "-o",
+    "~/Work/aeneas-demo/generated/texture/weathered-oak-planks/weathered-oak-planks_tile_candidates/weathered-oak-planks_tile_s799352246.png",
+    "--circular",
+    "--backend",
+    "vae=cpu"
+  ],
+  "checks": {
+    "width": 512,
+    "height": 512,
+    "spread": 36.6,
+    "seam_ratio": 0.53
+  },
+  "machine": "Darwin arm64",
+  "note": "Made with generative models on this machine. The model licences are as stated on their model cards; this is not legal advice. Credit and disclose as your project or store requires.",
+  "policy": {
+    "policy": "none (no .aeneas/policy.toml in the project)"
+  },
+  "selection": {
+    "candidates": 2,
+    "passed_checks": 2,
+    "ranked_by": "CLIP",
+    "chosen_seed": 799352246,
+    "all": [
+      {
+        "file": "~/Work/aeneas-demo/generated/texture/weathered-oak-planks/weathered-oak-planks_tile_candidates/weathered-oak-planks_tile_s799352245.png",
+        "path": "~/Work/aeneas-demo/generated/texture/weathered-oak-planks/weathered-oak-planks_tile_candidates/weathered-oak-planks_tile_s799352245.png",
+        "seed": 799352245,
+        "score": 0.2959,
+        "failed": null
+      },
+      {
+        "file": "~/Work/aeneas-demo/generated/texture/weathered-oak-planks/weathered-oak-planks_tile_candidates/weathered-oak-planks_tile_s799352246.png",
+        "path": "~/Work/aeneas-demo/generated/texture/weathered-oak-planks/weathered-oak-planks_tile_candidates/weathered-oak-planks_tile_s799352246.png",
+        "seed": 799352246,
+        "score": 0.3066,
+        "failed": null
+      }
+    ]
+  },
+  "output_sha256": "16115f139d38a0fb97ae6f09bca70912a30ddf12e90a61eaf0cc037b8a745b48",
+  "embedded_in_file": true
+}

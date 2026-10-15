@@ -1,0 +1,117 @@
+{
+  "recipe": "prop",
+  "recipe_file": "recipes/prop.toml",
+  "inputs": {
+    "subject": "a wooden water bucket with iron hoops",
+    "size_m": 0.4,
+    "style": "",
+    "candidates": 2,
+    "res": "512"
+  },
+  "started": "2026-10-15T21:12:23+02:00",
+  "steps": [
+    {
+      "id": "concept",
+      "op": "image",
+      "args": {
+        "prompt": "a wooden water bucket with iron hoops, a single object centred on a plain white background, the whole object in view, soft even studio light, product photo",
+        "candidates": 2,
+        "size": 1024,
+        "out": "~/Work/aeneas-demo/generated/prop/a-wooden-water-bucket-with-iron-hoops/a-wooden-water-bucket-with-iron-hoops_concept.png"
+      },
+      "result": {
+        "path": "~/Work/aeneas-demo/generated/prop/a-wooden-water-bucket-with-iron-hoops/a-wooden-water-bucket-with-iron-hoops_concept.png",
+        "sidecar": "~/Work/aeneas-demo/generated/prop/a-wooden-water-bucket-with-iron-hoops/a-wooden-water-bucket-with-iron-hoops_concept.png.json",
+        "kind": "image",
+        "checks": {
+          "width": 1024,
+          "height": 1024,
+          "spread": 61.2
+        },
+        "seed": 1571750653,
+        "seconds": 116.7,
+        "candidates": [
+          {
+            "file": "~/Work/aeneas-demo/generated/prop/a-wooden-water-bucket-with-iron-hoops/a-wooden-water-bucket-with-iron-hoops_concept_candidates/a-wooden-water-bucket-with-iron-hoops_concept_s1571750652.png",
+            "path": "~/Work/aeneas-demo/generated/prop/a-wooden-water-bucket-with-iron-hoops/a-wooden-water-bucket-with-iron-hoops_concept_candidates/a-wooden-water-bucket-with-iron-hoops_concept_s1571750652.png",
+            "seed": 1571750652,
+            "score": 0.3462,
+            "failed": null
+          },
+          {
+            "file": "~/Work/aeneas-demo/generated/prop/a-wooden-water-bucket-with-iron-hoops/a-wooden-water-bucket-with-iron-hoops_concept_candidates/a-wooden-water-bucket-with-iron-hoops_concept_s1571750653.png",
+            "path": "~/Work/aeneas-demo/generated/prop/a-wooden-water-bucket-with-iron-hoops/a-wooden-water-bucket-with-iron-hoops_concept_candidates/a-wooden-water-bucket-with-iron-hoops_concept_s1571750653.png",
+            "seed": 1571750653,
+            "score": 0.3495,
+            "failed": null
+          }
+        ]
+      }
+    },
+    {
+      "id": "mesh",
+      "op": "model3d",
+      "args": {
+        "src": "~/Work/aeneas-demo/generated/prop/a-wooden-water-bucket-with-iron-hoops/a-wooden-water-bucket-with-iron-hoops_concept.png",
+        "res": "512",
+        "preview": false,
+        "out": "~/Work/aeneas-demo/generated/prop/a-wooden-water-bucket-with-iron-hoops/a-wooden-water-bucket-with-iron-hoops_mesh.glb"
+      },
+      "result": {
+        "path": "~/Work/aeneas-demo/generated/prop/a-wooden-water-bucket-with-iron-hoops/a-wooden-water-bucket-with-iron-hoops_mesh.glb",
+        "sidecar": "~/Work/aeneas-demo/generated/prop/a-wooden-water-bucket-with-iron-hoops/a-wooden-water-bucket-with-iron-hoops_mesh.glb.json",
+        "kind": "model",
+        "checks": {
+          "vertices": 91325,
+          "extent": [
+            0.9624,
+            1.0039,
+            0.9391
+          ],
+          "textures": 2,
+          "materials": 1
+        },
+        "seed": 843768203,
+        "seconds": 456.0
+      }
+    },
+    {
+      "id": "game",
+      "op": "cleanup",
+      "args": {
+        "src": "~/Work/aeneas-demo/generated/prop/a-wooden-water-bucket-with-iron-hoops/a-wooden-water-bucket-with-iron-hoops_mesh.glb",
+        "size_m": 0.4,
+        "faces": 20000,
+        "lods": [
+          1.0,
+          0.5,
+          0.25
+        ],
+        "out": "~/Work/aeneas-demo/generated/prop/a-wooden-water-bucket-with-iron-hoops/a-wooden-water-bucket-with-iron-hoops_game.glb"
+      },
+      "result": {
+        "path": "~/Work/aeneas-demo/generated/prop/a-wooden-water-bucket-with-iron-hoops/a-wooden-water-bucket-with-iron-hoops_game.glb",
+        "sidecar": "~/Work/aeneas-demo/generated/prop/a-wooden-water-bucket-with-iron-hoops/a-wooden-water-bucket-with-iron-hoops_game.glb.json",
+        "kind": "model",
+        "checks": {
+          "vertices": 20965,
+          "extent": [
+            0.3832,
+            0.4006,
+            0.3742
+          ],
+          "textures": 2,
+          "materials": 1
+        },
+        "seed": 843768203,
+        "seconds": 2.3,
+        "lods": [
+          "~/Work/aeneas-demo/generated/prop/a-wooden-water-bucket-with-iron-hoops/a-wooden-water-bucket-with-iron-hoops_game.glb",
+          "~/Work/aeneas-demo/generated/prop/a-wooden-water-bucket-with-iron-hoops/a-wooden-water-bucket-with-iron-hoops_game_lod1.glb",
+          "~/Work/aeneas-demo/generated/prop/a-wooden-water-bucket-with-iron-hoops/a-wooden-water-bucket-with-iron-hoops_game_lod2.glb"
+        ]
+      }
+    }
+  ],
+  "finished": "2026-10-15T21:24:02+02:00"
+}

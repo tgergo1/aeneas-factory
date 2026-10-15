@@ -80,3 +80,17 @@ def test_embed_glb_roundtrip(tmp_path):
     provenance.finish(p, _rec())
     assert provenance.read_embedded(p)["prompt"] == "a test"
     assert checks.mesh(p)["vertices"] > 10000  # still a valid GLB
+
+
+def test_candidate_records_hold_no_absolute_paths(tmp_path, noise_png):
+    from aeneas import ops
+    out = tmp_path / "pick.png"
+
+    def make_one(p, seed, i, n):
+        shutil.copy(noise_png, p)
+        return {"prompt": "x", "seed": seed}
+
+    rec, listing = ops._candidates(ops.Ctx(), out, 3, 10, make_one, lambda paths: [0.1, 0.3, 0.2], "image")
+    assert rec["selection"]["chosen_seed"] == 11
+    assert all(c["path"].startswith("/") for c in listing)  # the caller still gets usable paths
+    assert all("path" not in c and "file" in c for c in rec["selection"]["all"])  # the record keeps only portable names

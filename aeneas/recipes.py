@@ -107,6 +107,17 @@ def _lookup(groups, env):
     return env["inputs"][name]
 
 
+def _portable_tree(obj):
+    """Paths in a manifest as portable() writes them, so a manifest never names the user."""
+    if isinstance(obj, dict):
+        return {k: _portable_tree(v) for k, v in obj.items()}
+    if isinstance(obj, list):
+        return [_portable_tree(v) for v in obj]
+    if isinstance(obj, (str, Path)) and str(obj).startswith("/"):
+        return portable(obj)
+    return obj
+
+
 def run(name, inputs, out_dir, ctx=None, slug=None):
     out_dir = Path(out_dir).expanduser().resolve()
     recipe = find(name, near=out_dir)
@@ -141,7 +152,7 @@ def run(name, inputs, out_dir, ctx=None, slug=None):
     ctx.progress = outer
     manifest["finished"] = datetime.datetime.now().astimezone().isoformat(timespec="seconds")
     mf = folder / "manifest.json"
-    mf.write_text(json.dumps(manifest, indent=2, default=str) + "\n")
+    mf.write_text(json.dumps(_portable_tree(manifest), indent=2, default=str) + "\n")
     outer(1.0, "done")
     last = env["steps"][steps[-1]["id"]]
     return {"path": last.get("path"), "folder": str(folder), "manifest": str(mf),

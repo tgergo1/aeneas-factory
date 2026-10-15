@@ -145,7 +145,7 @@
     <text class="mut" x="58" y="790">SHA-256 checked; all four core models 40.5 GB</text>
     <rect class="box" x="422" y="720" width="355" height="96" rx="12"/>
     <text class="txt mono" x="440" y="748" font-size="14.5" font-weight="700">aen check · make test · CI</text>
-    <text class="mut" x="440" y="772">a real job through every generator; 25 tests;</text>
+    <text class="mut" x="440" y="772">a real job through every generator; 26 tests;</text>
     <text class="mut" x="440" y="790">weekly check that every pinned download answers</text>
     <rect class="box" x="805" y="720" width="355" height="96" rx="12"/>
     <text class="txt mono" x="823" y="748" font-size="14.5" font-weight="700">AGENTS.md</text>

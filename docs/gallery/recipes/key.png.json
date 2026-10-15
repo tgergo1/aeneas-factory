@@ -1,0 +1,47 @@
+{
+  "generated_by": "aeneas-factory bin/ai-matte",
+  "created": "2026-10-15T21:08:33+02:00",
+  "seconds": 3.9,
+  "output": "a-golden-key_cutout.png",
+  "inputs": [
+    {
+      "file": "~/Work/aeneas-demo/generated/sprite/a-golden-key/a-golden-key_art.png",
+      "sha256": "97545ef10557d160e3381817c6da4ae45e0338b3e05e430bdfb21e5d3d402413"
+    }
+  ],
+  "models": [
+    {
+      "id": "birefnet-lite",
+      "name": "BiRefNet general lite (ONNX, for rembg)",
+      "upstream": "https://github.com/ZhengPeng7/BiRefNet",
+      "licence": "MIT",
+      "licence_allows_commercial_use": "the licence allows it (model card; not legal advice)",
+      "files": [
+        {
+          "file": "birefnet-general-lite.onnx",
+          "sha256": "5600024376f572a557870a5eb0afb1e5961636bef4e1e22132025467d0f03333",
+          "url": "https://github.com/danielgatis/rembg/releases/download/v0.0.0/BiRefNet-general-bb_swin_v1_tiny-epoch_232.onnx"
+        }
+      ]
+    }
+  ],
+  "versions": {
+    "aeneas-factory": "0.2.0 (14fa748610872b30bca1724cc0241e8ae833e44b+modified)"
+  },
+  "command": [
+    "rembg",
+    "birefnet-general-lite"
+  ],
+  "checks": {
+    "kept_fraction": 0.1,
+    "width": 1024,
+    "height": 1024
+  },
+  "machine": "Darwin arm64",
+  "note": "Made with generative models on this machine. The model licences are as stated on their model cards; this is not legal advice. Credit and disclose as your project or store requires.",
+  "policy": {
+    "policy": "none (no .aeneas/policy.toml in the project)"
+  },
+  "output_sha256": "ea557ac8ec6b0f6473a8b604270f703dda99d9c7d35187d02161a9d8704a2eab",
+  "embedded_in_file": true
+}

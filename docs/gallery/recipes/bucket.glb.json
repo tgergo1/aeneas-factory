@@ -1,0 +1,129 @@
+{
+  "generated_by": "aeneas-factory blender clean-up",
+  "created": "2026-10-15T21:23:59+02:00",
+  "seconds": 2.3,
+  "output": "a-wooden-water-bucket-with-iron-hoops_game.glb",
+  "seed": 843768203,
+  "params": {
+    "size_m": 0.4,
+    "max_faces": 20000,
+    "lods": [
+      {
+        "file": "a-wooden-water-bucket-with-iron-hoops_game.glb",
+        "faces": 20000
+      },
+      {
+        "file": "a-wooden-water-bucket-with-iron-hoops_game_lod1.glb",
+        "faces": 10000
+      },
+      {
+        "file": "a-wooden-water-bucket-with-iron-hoops_game_lod2.glb",
+        "faces": 5000
+      }
+    ],
+    "source_faces": 149556,
+    "dimensions_m": [
+      0.384,
+      0.376,
+      0.405
+    ]
+  },
+  "inputs": [
+    {
+      "file": "~/Work/aeneas-demo/generated/prop/a-wooden-water-bucket-with-iron-hoops/a-wooden-water-bucket-with-iron-hoops_mesh.glb",
+      "sha256": "bf24829e826d7655c2c8cde07e1cd1829aa91fee5a6c562fcb8042da32fe3cc0"
+    }
+  ],
+  "models": [
+    {
+      "id": "trellis2",
+      "name": "TRELLIS.2 4B",
+      "upstream": "https://huggingface.co/microsoft/TRELLIS.2-4B",
+      "licence": "MIT (TRELLIS.2, BiRefNet); DINOv3 License (Meta) for dinov3.gguf",
+      "licence_allows_commercial_use": "check: TRELLIS.2 and BiRefNet are MIT; dinov3.gguf is under Meta's DINOv3 License (read it before shipping)",
+      "files": [
+        {
+          "file": "dinov3.gguf",
+          "sha256": "b2e84087aebeb06440da4f5970413153f7f27f71ede7bab993e82accd839d936",
+          "url": "https://huggingface.co/ilintar/trellis2-gguf/resolve/a57397bd3d351599d9729fc144b3f87c3f87d65b/dinov3.gguf"
+        },
+        {
+          "file": "birefnet.gguf",
+          "sha256": "10c5dd4dcac904cf81c9a16180eb66f167dd52ab55867f54a44567b0b2babbc1",
+          "url": "https://huggingface.co/ilintar/trellis2-gguf/resolve/a57397bd3d351599d9729fc144b3f87c3f87d65b/birefnet.gguf"
+        },
+        {
+          "file": "ss_flow.gguf",
+          "sha256": "1dfbef1b80ddea422a6189ff9ac29a244c4482cfbaa01870a0c0ea76d3fb9ae6",
+          "url": "https://huggingface.co/ilintar/trellis2-gguf/resolve/a57397bd3d351599d9729fc144b3f87c3f87d65b/ss_flow.gguf"
+        },
+        {
+          "file": "ss_dec.gguf",
+          "sha256": "2790b5eecb261cc877d9bf175ce2bd6dd48cd65be8c042c5f5bc023dfca01cf7",
+          "url": "https://huggingface.co/ilintar/trellis2-gguf/resolve/a57397bd3d351599d9729fc144b3f87c3f87d65b/ss_dec.gguf"
+        },
+        {
+          "file": "shape_flow_512.gguf",
+          "sha256": "fef397f3600e2fab327a98b3edd3cc8377e9741eef870f3ea3f40235875828fb",
+          "url": "https://huggingface.co/ilintar/trellis2-gguf/resolve/a57397bd3d351599d9729fc144b3f87c3f87d65b/shape_flow_512.gguf"
+        },
+        {
+          "file": "shape_flow_1024.gguf",
+          "sha256": "7d0e9903bf132a5d78f289eaa2fa4050bcd52c689716406cbf66b76cdfa4656c",
+          "url": "https://huggingface.co/ilintar/trellis2-gguf/resolve/a57397bd3d351599d9729fc144b3f87c3f87d65b/shape_flow_1024.gguf"
+        },
+        {
+          "file": "shape_dec.gguf",
+          "sha256": "d3230b649031b55728da2d8818f092eab9ad6f1e72fd01f6cbff6bfada5d7d47",
+          "url": "https://huggingface.co/ilintar/trellis2-gguf/resolve/a57397bd3d351599d9729fc144b3f87c3f87d65b/shape_dec.gguf"
+        },
+        {
+          "file": "tex_flow_512.gguf",
+          "sha256": "0e81b8213191369dc023eb270650f0ccded29f39bf0bbb7a1fe5d4bcefc15b79",
+          "url": "https://huggingface.co/ilintar/trellis2-gguf/resolve/a57397bd3d351599d9729fc144b3f87c3f87d65b/tex_flow_512.gguf"
+        },
+        {
+          "file": "tex_flow_1024.gguf",
+          "sha256": "c0a51917c1e5a9dad4d8a49cdf47553e21fd47716d46e53c5f44fcc7bf7f3af1",
+          "url": "https://huggingface.co/ilintar/trellis2-gguf/resolve/a57397bd3d351599d9729fc144b3f87c3f87d65b/tex_flow_1024.gguf"
+        },
+        {
+          "file": "tex_dec.gguf",
+          "sha256": "858d1e0079254e1d1f0596d7fa3a747d21bfe80f83d810e735a1e0b9db550322",
+          "url": "https://huggingface.co/ilintar/trellis2-gguf/resolve/a57397bd3d351599d9729fc144b3f87c3f87d65b/tex_dec.gguf"
+        }
+      ]
+    }
+  ],
+  "versions": {
+    "aeneas-factory": "0.2.0 (14fa748610872b30bca1724cc0241e8ae833e44b+modified)",
+    "trellis.cpp": "2516c48b677050c570f47eba2e68dc8a5bc918b0"
+  },
+  "command": [
+    "/Applications/Blender.app/Contents/MacOS/Blender",
+    "-b",
+    "--factory-startup",
+    "--python",
+    "scripts/blender_cleanup.py",
+    "--",
+    "~/Work/aeneas-demo/generated/prop/a-wooden-water-bucket-with-iron-hoops/a-wooden-water-bucket-with-iron-hoops_mesh.glb",
+    "~/Work/aeneas-demo/generated/prop/a-wooden-water-bucket-with-iron-hoops/a-wooden-water-bucket-with-iron-hoops_game.glb",
+    "0.4",
+    "20000",
+    "1.0,0.5,0.25"
+  ],
+  "checks": {
+    "vertices": 20965,
+    "extent": [
+      0.3832,
+      0.4006,
+      0.3742
+    ],
+    "textures": 2,
+    "materials": 1
+  },
+  "machine": "Darwin arm64",
+  "note": "Made with generative models on this machine. The model licences are as stated on their model cards; this is not legal advice. Credit and disclose as your project or store requires.",
+  "output_sha256": "5c135c9a4f0f08465007552c809903f02c4a8f052083116d8a4d3eea4575bda2",
+  "embedded_in_file": true
+}

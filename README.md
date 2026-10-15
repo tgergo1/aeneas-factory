@@ -35,6 +35,19 @@ Made by this repository ([`scripts/make_gallery.sh`](scripts/make_gallery.sh), f
 
 **Sound effect**, MOSS-SoundEffect: [`chest-creak.wav`](docs/gallery/chest-creak.wav) · `aen sfx "an old wooden chest lid creaks open slowly, then thuds shut" -o chest-creak.wav`
 
+### Recipes: finished assets, not raw generations
+
+These came out of one command each, through the factory service, with every intermediate step and its provenance kept ([`docs/gallery/recipes`](docs/gallery/recipes)).
+
+| | | |
+|---|---|---|
+| <img src="docs/gallery/recipes/bucket-render.png" width="100%" alt="A game-ready wooden bucket model"> | <img src="docs/gallery/recipes/oak-2x2.png" width="100%" alt="An oak plank texture tiled 2x2"> | <img src="docs/gallery/recipes/key.png" width="100%" alt="A golden key on a transparent background"> |
+| **`prop`**: best of 2 concept images → TRELLIS.2 → Blender: 0.4 m tall, origin at the bottom, 149,556 faces cut to LODs of 20,000 / 10,000 / 5,000 ([`bucket.glb`](docs/gallery/recipes/bucket.glb), [manifest](docs/gallery/recipes/bucket-manifest.json)). 11.6 minutes | **`texture`**: best of 2 tiles by CLIP, seam checked (edge jump 0.53x the texture's own detail), plus height, [normal](docs/gallery/recipes/oak-normal.png), roughness and AO maps | **`sprite`**: best of 2 images, cut out onto transparency with BiRefNet |
+
+<img src="docs/gallery/recipes/door-wave.png" width="100%" alt="Waveform of the generated door sound">
+
+**`sfx`**: two takes ranked by CLAP, silence trimmed, loudness normalised to -18 LUFS with a -1 dBTP peak: [`door.wav`](docs/gallery/recipes/door.wav)
+
 ## Quick start
 
 ```bash
@@ -178,7 +191,7 @@ The service listens on 127.0.0.1 only. Every request needs the token in `~/.aene
 ## Development
 
 ```bash
-make test           # 25 tests, no models or GPU needed
+make test           # 26 tests, no models or GPU needed
 python scripts/gen_docs.py --check    # the docs agree with models.json
 .venv/bin/python scripts/mcp_smoke.py ~/some/project    # the MCP path end to end
 ```

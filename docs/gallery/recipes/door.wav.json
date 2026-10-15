@@ -1,0 +1,145 @@
+{
+  "generated_by": "aeneas-factory bin/ai-sfx",
+  "created": "2026-10-15T21:08:37+02:00",
+  "seconds": 121.8,
+  "output": "a-heavy-wooden-door-creaks-open-slowly_take.wav",
+  "prompt": "a heavy wooden door creaks open slowly",
+  "seed": 1138622172,
+  "params": {
+    "seconds": 4,
+    "steps": 100,
+    "cfg": 4.0,
+    "sample_rate": 48000,
+    "mastered": "trimmed silence, loudness -18 LUFS, peak -1 dBTP"
+  },
+  "models": [
+    {
+      "id": "moss-sfx",
+      "name": "MOSS-SoundEffect v2.0 (MLX bf16)",
+      "upstream": "https://huggingface.co/OpenMOSS-Team/MOSS-SoundEffect-v2.0",
+      "licence": "Apache-2.0",
+      "licence_allows_commercial_use": "the licence allows it (model card; not legal advice)",
+      "files": [
+        {
+          "file": "mlx/dit.safetensors",
+          "sha256": "b6e61199ff665c862611c706b1347a2ffe967318a813643e375b221a7c6342b6",
+          "url": "https://huggingface.co/mlx-community/MOSS-SoundEffect-v2.0-bf16/resolve/71a08a420dcac61b73fc1f721d56ac41078973bf/mlx/dit.safetensors"
+        },
+        {
+          "file": "mlx/vae.safetensors",
+          "sha256": "158ab5fd08134598aec356e914bc147ccb6fac369f95042ca0560675a1b0ebdb",
+          "url": "https://huggingface.co/mlx-community/MOSS-SoundEffect-v2.0-bf16/resolve/71a08a420dcac61b73fc1f721d56ac41078973bf/mlx/vae.safetensors"
+        },
+        {
+          "file": "model_index.json",
+          "sha256": "218aa3a28f75726279b34ee438500652c615e8d77c13fed2cad5c44a2d1588cb",
+          "url": "https://huggingface.co/mlx-community/MOSS-SoundEffect-v2.0-bf16/resolve/71a08a420dcac61b73fc1f721d56ac41078973bf/model_index.json"
+        },
+        {
+          "file": "scheduler/scheduler_config.json",
+          "sha256": "060d9ee9ea73310ff1a47e589a5e37d3e03d99711a6277646b3f679030606977",
+          "url": "https://huggingface.co/mlx-community/MOSS-SoundEffect-v2.0-bf16/resolve/71a08a420dcac61b73fc1f721d56ac41078973bf/scheduler/scheduler_config.json"
+        },
+        {
+          "file": "text_encoder/config.json",
+          "sha256": "1ddb5b89ebc90dcb417a45c213d818577e65976454d29385c8f6140771d95197",
+          "url": "https://huggingface.co/mlx-community/MOSS-SoundEffect-v2.0-bf16/resolve/71a08a420dcac61b73fc1f721d56ac41078973bf/text_encoder/config.json"
+        },
+        {
+          "file": "text_encoder/generation_config.json",
+          "sha256": "2325da0f15bb848e018c5ae071b7943332e9f871d6b60e2ed22ca97d4cb993d2",
+          "url": "https://huggingface.co/mlx-community/MOSS-SoundEffect-v2.0-bf16/resolve/71a08a420dcac61b73fc1f721d56ac41078973bf/text_encoder/generation_config.json"
+        },
+        {
+          "file": "text_encoder/model-00001-of-00002.safetensors",
+          "sha256": "169ad53ec313c3a34b06c0809216e4fc072cce444a5d4ff2b59690d064130ed5",
+          "url": "https://huggingface.co/mlx-community/MOSS-SoundEffect-v2.0-bf16/resolve/71a08a420dcac61b73fc1f721d56ac41078973bf/text_encoder/model-00001-of-00002.safetensors"
+        },
+        {
+          "file": "text_encoder/model-00002-of-00002.safetensors",
+          "sha256": "912becff8d60672aa8628ef08c05898d9adf17c2ad4ae3caf99b065622fdeff9",
+          "url": "https://huggingface.co/mlx-community/MOSS-SoundEffect-v2.0-bf16/resolve/71a08a420dcac61b73fc1f721d56ac41078973bf/text_encoder/model-00002-of-00002.safetensors"
+        },
+        {
+          "file": "text_encoder/model.safetensors.index.json",
+          "sha256": "0d660e94b165eb912669a5249dff44b83188c4777a07ddb9611fb78d91b0578d",
+          "url": "https://huggingface.co/mlx-community/MOSS-SoundEffect-v2.0-bf16/resolve/71a08a420dcac61b73fc1f721d56ac41078973bf/text_encoder/model.safetensors.index.json"
+        },
+        {
+          "file": "tokenizer/merges.txt",
+          "sha256": "8831e4f1a044471340f7c0a83d7bd71306a5b867e95fd870f74d0c5308a904d5",
+          "url": "https://huggingface.co/mlx-community/MOSS-SoundEffect-v2.0-bf16/resolve/71a08a420dcac61b73fc1f721d56ac41078973bf/tokenizer/merges.txt"
+        },
+        {
+          "file": "tokenizer/tokenizer.json",
+          "sha256": "aeb13307a71acd8fe81861d94ad54ab689df773318809eed3cbe794b4492dae4",
+          "url": "https://huggingface.co/mlx-community/MOSS-SoundEffect-v2.0-bf16/resolve/71a08a420dcac61b73fc1f721d56ac41078973bf/tokenizer/tokenizer.json"
+        },
+        {
+          "file": "tokenizer/tokenizer_config.json",
+          "sha256": "d5d09f07b48c3086c508b30d1c9114bd1189145b74e982a265350c923acd8101",
+          "url": "https://huggingface.co/mlx-community/MOSS-SoundEffect-v2.0-bf16/resolve/71a08a420dcac61b73fc1f721d56ac41078973bf/tokenizer/tokenizer_config.json"
+        },
+        {
+          "file": "tokenizer/vocab.json",
+          "sha256": "ca10d7e9fb3ed18575dd1e277a2579c16d108e32f27439684afa0e10b1440910",
+          "url": "https://huggingface.co/mlx-community/MOSS-SoundEffect-v2.0-bf16/resolve/71a08a420dcac61b73fc1f721d56ac41078973bf/tokenizer/vocab.json"
+        },
+        {
+          "file": "transformer/config.json",
+          "sha256": "168ed701ba50c85d15a4a052a29038b81a8dbde0590cda3c5672b3cb1a263906",
+          "url": "https://huggingface.co/mlx-community/MOSS-SoundEffect-v2.0-bf16/resolve/71a08a420dcac61b73fc1f721d56ac41078973bf/transformer/config.json"
+        },
+        {
+          "file": "vae/config.json",
+          "sha256": "92cdfc4c26b7f88efc15316e70faa6c53695f933ebaf1300c636b040d8e69d04",
+          "url": "https://huggingface.co/mlx-community/MOSS-SoundEffect-v2.0-bf16/resolve/71a08a420dcac61b73fc1f721d56ac41078973bf/vae/config.json"
+        }
+      ]
+    }
+  ],
+  "versions": {
+    "aeneas-factory": "0.2.0 (14fa748610872b30bca1724cc0241e8ae833e44b+modified)",
+    "moss-soundeffect-mlx": "4e8e3e36d4d9c991d16a3e65a4b7099d406b9ed8"
+  },
+  "command": [
+    "moss worker",
+    "seed=1138622172"
+  ],
+  "checks": {
+    "seconds": 3.33,
+    "rms_dbfs": -19.9,
+    "peak_dbfs": -1.0,
+    "sample_rate": 48000,
+    "channels": 1
+  },
+  "machine": "Darwin arm64",
+  "note": "Made with generative models on this machine. The model licences are as stated on their model cards; this is not legal advice. Credit and disclose as your project or store requires.",
+  "policy": {
+    "policy": "none (no .aeneas/policy.toml in the project)"
+  },
+  "selection": {
+    "candidates": 2,
+    "passed_checks": 2,
+    "ranked_by": "CLAP",
+    "chosen_seed": 1138622172,
+    "all": [
+      {
+        "file": "~/Work/aeneas-demo/generated/sfx/a-heavy-wooden-door-creaks-open-slowly/a-heavy-wooden-door-creaks-open-slowly_take_candidates/a-heavy-wooden-door-creaks-open-slowly_take_s1138622172.wav",
+        "path": "~/Work/aeneas-demo/generated/sfx/a-heavy-wooden-door-creaks-open-slowly/a-heavy-wooden-door-creaks-open-slowly_take_candidates/a-heavy-wooden-door-creaks-open-slowly_take_s1138622172.wav",
+        "seed": 1138622172,
+        "score": 0.4215,
+        "failed": null
+      },
+      {
+        "file": "~/Work/aeneas-demo/generated/sfx/a-heavy-wooden-door-creaks-open-slowly/a-heavy-wooden-door-creaks-open-slowly_take_candidates/a-heavy-wooden-door-creaks-open-slowly_take_s1138622173.wav",
+        "path": "~/Work/aeneas-demo/generated/sfx/a-heavy-wooden-door-creaks-open-slowly/a-heavy-wooden-door-creaks-open-slowly_take_candidates/a-heavy-wooden-door-creaks-open-slowly_take_s1138622173.wav",
+        "seed": 1138622173,
+        "score": 0.4191,
+        "failed": null
+      }
+    ]
+  },
+  "output_sha256": "d8d0050f7a7b5bcd4854a5ba3be050d4b7c3cfa5d8c1e7a3a3fadf6569b7fb25",
+  "embedded_in_file": true
+}
