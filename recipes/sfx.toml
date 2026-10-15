@@ -1,0 +1,15 @@
+name = "sfx"
+description = "A game sound effect: several takes (ranked by how well they match the description when CLAP is installed), trimmed and loudness-normalised to -18 LUFS with a -1 dBTP peak."
+
+[inputs]
+description = { help = "the sound, e.g. 'a heavy wooden door creaks open slowly'" }
+seconds = { default = 4.0, help = "length in seconds (up to 30)" }
+candidates = { default = 3, help = "takes to choose from" }
+
+[[steps]]
+id = "take"
+op = "sfx"
+prompt = "{description}"
+seconds = "{seconds}"
+candidates = "{candidates}"
+master = true

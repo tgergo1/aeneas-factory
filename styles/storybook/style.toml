@@ -1,0 +1,7 @@
+name = "storybook"
+description = "Warm painterly storybook illustration, soft light, muted earthy palette"
+prompt_suffix = ", painterly storybook illustration, gouache texture, warm soft light, muted earthy palette"
+negative = "photo, 3d render, text, watermark, harsh contrast"
+model = "z-image-turbo"
+palette = ["#6b4f3a", "#c9a66b", "#8a9a5b", "#e8dcc2"]
+sfx_suffix = ", gentle, warm, natural"

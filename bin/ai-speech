@@ -1,0 +1,3 @@
+#!/bin/sh
+# Short for: aen speech
+exec "$(dirname "$0")/aen" speech "$@"

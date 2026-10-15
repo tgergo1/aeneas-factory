@@ -1,0 +1,3 @@
+#!/bin/sh
+# Short for: aen matte
+exec "$(dirname "$0")/aen" matte "$@"

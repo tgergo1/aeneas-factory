@@ -1,0 +1,6 @@
+#!/bin/sh
+# Aeneas Factory command line. Runs the aeneas package in the factory's own environment (.venv).
+ROOT="$(cd "$(dirname "$0")/.." && pwd -P)"
+PY="$ROOT/.venv/bin/python"
+[ -x "$PY" ] || { echo "The factory environment is missing. Run: make factory  (in $ROOT)" >&2; exit 1; }
+PYTHONPATH="$ROOT${PYTHONPATH:+:$PYTHONPATH}" exec "$PY" -m aeneas "$@"

@@ -1,0 +1,75 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: "17 5 * * 1"   # every Monday: are the pinned downloads still there?
+  workflow_dispatch:
+    inputs:
+      build:
+        description: "Also build the tools on an Apple Silicon runner"
+        type: boolean
+        default: false
+
+jobs:
+  tests:
+    name: Tests, register and docs (no models, no GPU)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+      - uses: astral-sh/setup-uv@v6
+      - name: Factory environment (pinned, hashed)
+        run: |
+          uv venv --python 3.12 .venv
+          uv pip install --python .venv/bin/python --require-hashes -r requirements/factory.txt
+      - name: Byte-compile everything
+        run: .venv/bin/python -m compileall -q aeneas scripts tests
+      - name: Tests
+        run: .venv/bin/python -m pytest -q tests
+      - name: Docs agree with models.json
+        run: .venv/bin/python scripts/gen_docs.py --check
+      - name: Command line starts
+        run: |
+          bin/aen --version
+          bin/aen models list
+          bin/aen recipe list
+
+  downloads:
+    name: Every pinned download still answers
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: HEAD every URL in models.json
+        run: |
+          python3 - <<'EOF'
+          import json, sys, urllib.request
+          bad = []
+          for m in json.load(open("models.json"))["models"]:
+              for f in m["files"]:
+                  req = urllib.request.Request(f["url"], method="HEAD", headers={"User-Agent": "aeneas-factory-ci"})
+                  try:
+                      with urllib.request.urlopen(req, timeout=60) as r:
+                          size = int(r.headers.get("Content-Length") or r.headers.get("x-linked-size") or f["bytes"])
+                          if size != f["bytes"] and r.headers.get("Content-Length"):
+                              bad.append(f"{m['id']}/{f['path']}: size {size}, expected {f['bytes']}")
+                  except Exception as e:
+                      bad.append(f"{m['id']}/{f['path']}: {e}")
+          print("\n".join(bad) or "all downloads answer")
+          sys.exit(1 if bad else 0)
+          EOF
+
+  build-macos:
+    name: Build the tools on Apple Silicon
+    if: github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.build)
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prerequisites
+        run: brew install cmake uv
+      - name: Build sd-cli, trellis-cli and the MOSS env at their pinned commits
+        run: make prereqs factory tools
+      - name: Quick check (tools only; no models in CI)
+        run: bin/aen check --quick

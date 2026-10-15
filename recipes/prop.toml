@@ -1,0 +1,31 @@
+name = "prop"
+description = "A game-ready 3D prop: concept image on white (best of several), 3D model, Blender clean-up to a real size with LODs, and a preview render."
+
+[inputs]
+subject = { help = "what the prop is, e.g. 'a wooden water bucket with iron hoops'" }
+size_m = { default = 1.0, help = "its largest dimension in metres" }
+style = { default = "", help = "a style pack name, or empty" }
+candidates = { default = 3, help = "concept images to choose from" }
+res = { default = "512", help = "3D resolution: 512 (about 5 min) or 1024 (about 24 min)" }
+
+[[steps]]
+id = "concept"
+op = "image"
+prompt = "{subject}, a single object centred on a plain white background, the whole object in view, soft even studio light, product photo"
+candidates = "{candidates}"
+size = 1024
+
+[[steps]]
+id = "mesh"
+op = "model3d"
+src = "{concept.path}"
+res = "{res}"
+preview = false
+
+[[steps]]
+id = "game"
+op = "cleanup"
+src = "{mesh.path}"
+size_m = "{size_m}"
+faces = 20000
+lods = [1.0, 0.5, 0.25]

@@ -2,22 +2,39 @@
 
 For Claude Code, Codex or any agent asked to make images, textures, 3D models, sound effects or other content on a machine with this factory installed.
 
-## Generate with the commands in `bin/`
+## Prefer the MCP tools
 
-| Need | Command | Model |
-|---|---|---|
-| Image from text | `bin/ai-image "<prompt>" -o out.png` | Z-Image Turbo (default) or `--model flux2-klein-4b` |
-| Edit an image | `bin/ai-image "<what to change>" --model flux2-klein-4b --ref in.png -o out.png` | FLUX.2 [klein] 4B |
-| Seamless texture | `bin/ai-image "<surface>" --tile --size 512 -o tile.png` | Z-Image Turbo |
-| Restyle a photo | `bin/ai-image "<style>" --init photo.png --strength 0.4 -o out.png` | Z-Image Turbo |
-| 3D model from one image | `bin/ai-3d object.png -o object.glb` (`--res 512` is lighter) | TRELLIS.2 4B |
-| Sound effect | `bin/ai-sfx "<description>" --seconds 5 -o out.wav` | MOSS-SoundEffect v2.0 |
+If the `aeneas` MCP server is connected, use its tools; they queue on the shared factory service, check every result and return a thumbnail.
 
-- Run `bin/ai-models list` to see what is downloaded and `bin/ai-check --quick` if something fails.
-- Every command writes `<output>.json` next to its output. Keep it with the file: it records the models, their licences, the prompt, the seed and the exact command.
-- Pass `--seed` when the result must be reproducible.
-- For 3D, describe one object on a plain white background in the image prompt. Generate the image first, then `ai-3d` it.
-- Do not download a second copy of a model that `models.json` already lists. A model several projects could use belongs in this factory's register, not inside a project.
+1. Call `capabilities` once (with `project_dir`) to see the recipes, styles and downloaded models.
+2. Before generating, `search_assets` may already have what is needed (generated earlier, or a downloaded CC0 pack).
+3. For a finished asset, prefer `run_recipe`: `prop` (game-ready 3D model with LODs), `texture` (seamless PBR set), `sfx` (mastered sound effect), `sprite` (cut-out 2D art).
+4. For single steps: `generate_image`, `edit_image`, `make_texture`, `image_to_3d`, `generate_sound`, `generate_speech`, `upscale_image`, `remove_background`.
+5. **Look at the thumbnail of every result** before using it. If it is wrong, try another seed or `candidates` 3-4; do not keep a result you have not looked at.
+6. Long jobs return a `job_id`; call `job_status` to wait. 3D takes about 5 minutes at res 512.
+7. Always pass the project's absolute `project_dir`; results go to `<project_dir>/generated/`.
+8. If a tool says the project's licence policy refuses a model, tell the owner; do not work around it.
+
+## Or the command line
+
+| Need | Command |
+|---|---|
+| Image from text | `bin/aen image "<prompt>" -o out.png` (`--model flux2-klein-4b`, `--candidates 3`, `--style NAME`) |
+| Edit an image | `bin/aen edit "<what to change>" in.png -o out.png` |
+| Seamless texture with PBR maps | `bin/aen texture "<surface>" -o tile.png` |
+| 3D model from one image | `bin/aen 3d object.png -o object.glb` (res 512 by default, about 5 minutes) |
+| Game-ready model | `bin/aen recipe prop --out-dir DIR subject="<object>" size_m=0.5` |
+| Sound effect | `bin/aen sfx "<description>" --seconds 5 -o out.wav` |
+| Speech | `bin/aen speech "<text>" -o out.wav --voice bm_george` |
+| Upscale · cut out | `bin/aen upscale in.png -o out.png` · `bin/aen matte in.png -o out.png` |
+| Find existing assets | `bin/aen library search "<words>" --licence CC0-1.0` |
+
+- `bin/aen models list` shows what is downloaded; `bin/aen check --quick` diagnoses problems.
+- Every output gets `<output>.json` beside it and the same record inside it: models, licences, prompt, seed, versions, checks. Keep it with the file.
+- Pass `--seed` when a result must be reproducible.
+- For 3D, describe one object on a plain white background, generate the image, then make the model from it (or just use the `prop` recipe).
+- Never download a second copy of a model that `models.json` lists. A model several projects could use belongs in this factory's register.
+- `bin/aen library credits <project>` writes the credits page from everything generated and imported.
 
 ## Prefer the right tool over a workaround
 
@@ -53,7 +70,7 @@ Check each asset's own licence on its page; several sites mix licences.
 
 ## Rules
 
-- **Record every asset.** Title, author, source URL, licence and date go in the project's credits file. For generated content, the sidecar already holds the model, licence, prompt and date.
+- **Record every asset.** Import downloaded packs into the library with their licence (`aen library import DIR --source ... --licence ...`); generated files are recorded automatically. `aen library credits` then writes the credits page.
 - **Check commercial use** before anything ships or is shown publicly. Prefer CC0 and other permissive licences; treat CC BY-SA, GPL and non-commercial as the owner's decision. TRELLIS.2's `dinov3.gguf` is under Meta's DINOv3 License: read it before shipping 3D models.
 - **Credit what requires credit** (CC BY and similar) wherever the work is shown.
 - **Ask the owner before** buying anything, creating an account or signing in to a store.

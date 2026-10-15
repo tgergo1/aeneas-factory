@@ -1,0 +1,3 @@
+#!/bin/sh
+# Short for: aen edit
+exec "$(dirname "$0")/aen" edit "$@"

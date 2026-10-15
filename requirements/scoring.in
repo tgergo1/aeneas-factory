@@ -1,0 +1,4 @@
+# Optional: ranking candidates by how well they match the prompt (CLIP for images, CLAP for sound).
+-c factory.txt
+torch
+transformers

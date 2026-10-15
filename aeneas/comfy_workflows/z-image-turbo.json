@@ -1,0 +1,18 @@
+{
+  "about": "Z-Image Turbo through ComfyUI with the factory's GGUF files (ComfyUI-GGUF loaders; the factory's AeneasUnetLoaderGGUF reads sd.cpp GGUF files). Placeholders: {prompt}, {seed}, {size}, {steps}.",
+  "models": ["z-image-turbo"],
+  "graph": {
+    "1": {"class_type": "AeneasUnetLoaderGGUF", "inputs": {"unet_name": "z_image_turbo-Q8_0.gguf"}},
+    "2": {"class_type": "CLIPLoaderGGUF", "inputs": {"clip_name": "Qwen3-4B-Instruct-2507-Q8_0.gguf", "type": "lumina2"}},
+    "3": {"class_type": "VAELoader", "inputs": {"vae_name": "ae.safetensors"}},
+    "4": {"class_type": "ModelSamplingAuraFlow", "inputs": {"model": ["1", 0], "shift": 3.0}},
+    "5": {"class_type": "CLIPTextEncode", "inputs": {"text": "{prompt}", "clip": ["2", 0]}},
+    "6": {"class_type": "ConditioningZeroOut", "inputs": {"conditioning": ["5", 0]}},
+    "7": {"class_type": "EmptySD3LatentImage", "inputs": {"width": "{size}", "height": "{size}", "batch_size": 1}},
+    "8": {"class_type": "KSampler", "inputs": {"model": ["4", 0], "positive": ["5", 0], "negative": ["6", 0],
+          "latent_image": ["7", 0], "seed": "{seed}", "steps": "{steps}", "cfg": 1.0,
+          "sampler_name": "res_multistep", "scheduler": "simple", "denoise": 1.0}},
+    "9": {"class_type": "VAEDecode", "inputs": {"samples": ["8", 0], "vae": ["3", 0]}},
+    "10": {"class_type": "SaveImage", "inputs": {"images": ["9", 0], "filename_prefix": "aeneas"}}
+  }
+}

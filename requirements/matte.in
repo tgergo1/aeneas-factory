@@ -1,0 +1,4 @@
+# Optional: background removal (rembg with BiRefNet).
+-c factory.txt
+rembg
+onnxruntime

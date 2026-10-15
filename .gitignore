@@ -1,6 +1,8 @@
 # Built and downloaded on each machine by `make install`: never committed.
 /models/
 /tools/
+.venv/
+.pytest_cache/
 
 # Work files
 *.part

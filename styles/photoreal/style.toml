@@ -1,0 +1,6 @@
+name = "photoreal"
+description = "Neutral photographic look for props and materials"
+prompt_suffix = ", photograph, natural materials, accurate colours, soft even light, sharp focus"
+negative = "illustration, cartoon, text, watermark"
+model = "z-image-turbo"
+sfx_suffix = ", recorded close, dry, natural"

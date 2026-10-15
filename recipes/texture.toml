@@ -1,0 +1,14 @@
+name = "texture"
+description = "A seamless PBR texture set: tiling colour map (best of several, seam checked), height, normal, roughness and AO maps, and a 2x2 preview."
+
+[inputs]
+surface = { help = "the surface, e.g. 'mossy cobblestones' or 'weathered oak planks'" }
+candidates = { default = 3, help = "tiles to choose from" }
+
+[[steps]]
+id = "tile"
+op = "texture"
+prompt = "{surface}, seen from directly above, flat even overcast light, no shadows, photographic ground texture, seamless"
+size = 512
+candidates = "{candidates}"
+pbr = true

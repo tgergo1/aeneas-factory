@@ -1,0 +1,19 @@
+name = "sprite"
+description = "A 2D sprite or icon: an image of one subject on white (best of several), cut out onto a transparent background."
+
+[inputs]
+subject = { help = "what to draw, e.g. 'a golden key'" }
+look = { default = "clean game art, soft shading", help = "how it should look" }
+candidates = { default = 3, help = "images to choose from" }
+
+[[steps]]
+id = "art"
+op = "image"
+prompt = "{subject}, {look}, a single object centred on a plain white background"
+candidates = "{candidates}"
+size = 1024
+
+[[steps]]
+id = "cutout"
+op = "matte"
+src = "{art.path}"

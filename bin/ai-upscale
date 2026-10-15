@@ -1,0 +1,3 @@
+#!/bin/sh
+# Short for: aen upscale
+exec "$(dirname "$0")/aen" upscale "$@"

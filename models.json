@@ -14,7 +14,7 @@
       ],
       "command": "ai-image",
       "licence": "Apache-2.0",
-      "commercial_output": "yes",
+      "commercial_output": "the licence allows it (model card; not legal advice)",
       "upstream": "https://huggingface.co/Tongyi-MAI/Z-Image-Turbo",
       "files": [
         {
@@ -36,7 +36,10 @@
           "url": "https://huggingface.co/Comfy-Org/z_image_turbo/resolve/6fc90a3b1b653e935a0d175e260736de25b84df5/split_files/vae/ae.safetensors"
         }
       ],
-      "path": "models/z-image-turbo"
+      "path": "models/z-image-turbo",
+      "spdx": [
+        "Apache-2.0"
+      ]
     },
     {
       "id": "flux2-klein-4b",
@@ -53,7 +56,7 @@
         "z-image-turbo"
       ],
       "licence": "Apache-2.0",
-      "commercial_output": "yes",
+      "commercial_output": "the licence allows it (model card; not legal advice)",
       "upstream": "https://huggingface.co/black-forest-labs/FLUX.2-klein-4B",
       "files": [
         {
@@ -69,7 +72,10 @@
           "url": "https://huggingface.co/black-forest-labs/FLUX.2-klein-4B/resolve/e7b7dc27f91deacad38e78976d1f2b499d76a294/vae/diffusion_pytorch_model.safetensors"
         }
       ],
-      "path": "models/flux2-klein-4b"
+      "path": "models/flux2-klein-4b",
+      "spdx": [
+        "Apache-2.0"
+      ]
     },
     {
       "id": "trellis2",
@@ -83,7 +89,7 @@
       ],
       "command": "ai-3d",
       "licence": "MIT (TRELLIS.2, BiRefNet); DINOv3 License (Meta) for dinov3.gguf",
-      "commercial_output": "check: TRELLIS.2 and BiRefNet are MIT; read the DINOv3 License before shipping",
+      "commercial_output": "check: TRELLIS.2 and BiRefNet are MIT; dinov3.gguf is under Meta's DINOv3 License (read it before shipping)",
       "upstream": "https://huggingface.co/microsoft/TRELLIS.2-4B",
       "files": [
         {
@@ -147,7 +153,22 @@
           "url": "https://huggingface.co/ilintar/trellis2-gguf/resolve/a57397bd3d351599d9729fc144b3f87c3f87d65b/tex_dec.gguf"
         }
       ],
-      "path": "models/trellis2"
+      "path": "models/trellis2",
+      "spdx": [
+        "MIT",
+        "LicenseRef-DINOv3"
+      ],
+      "accept": [
+        {
+          "key": "dinov3",
+          "licence": "DINOv3 License (Meta)",
+          "url": "https://ai.meta.com/resources/models-and-libraries/dinov3-license",
+          "files": [
+            "dinov3.gguf"
+          ],
+          "why": "Meta gates DINOv3 behind its own licence agreement on Hugging Face; this file comes from an ungated GGUF conversion (ilintar/trellis2-gguf), so the factory asks you to read and accept the licence yourself."
+        }
+      ]
     },
     {
       "id": "moss-sfx",
@@ -160,7 +181,7 @@
       ],
       "command": "ai-sfx",
       "licence": "Apache-2.0",
-      "commercial_output": "yes",
+      "commercial_output": "the licence allows it (model card; not legal advice)",
       "upstream": "https://huggingface.co/OpenMOSS-Team/MOSS-SoundEffect-v2.0",
       "files": [
         {
@@ -254,7 +275,265 @@
           "url": "https://huggingface.co/mlx-community/MOSS-SoundEffect-v2.0-bf16/resolve/71a08a420dcac61b73fc1f721d56ac41078973bf/vae/config.json"
         }
       ],
-      "path": "models/moss-sfx"
+      "path": "models/moss-sfx",
+      "spdx": [
+        "Apache-2.0"
+      ]
+    },
+    {
+      "id": "realesrgan-x4plus",
+      "name": "Real-ESRGAN x4plus",
+      "group": "upscale",
+      "default": false,
+      "summary": "Four times larger images, general photos and renders",
+      "capabilities": [
+        "upscale"
+      ],
+      "command": "aen upscale",
+      "licence": "BSD-3-Clause",
+      "spdx": [
+        "BSD-3-Clause"
+      ],
+      "commercial_output": "the licence allows it (model card; not legal advice)",
+      "upstream": "https://github.com/xinntao/Real-ESRGAN",
+      "path": "models/realesrgan-x4plus",
+      "files": [
+        {
+          "path": "RealESRGAN_x4plus.pth",
+          "bytes": 67040989,
+          "sha256": "4fa0d38905f75ac06eb49a7951b426670021be3018265fd191d2125df9d682f1",
+          "url": "https://github.com/xinntao/Real-ESRGAN/releases/download/v0.1.0/RealESRGAN_x4plus.pth"
+        }
+      ]
+    },
+    {
+      "id": "birefnet-lite",
+      "name": "BiRefNet general lite (ONNX, for rembg)",
+      "group": "matte",
+      "default": false,
+      "summary": "Background removal: the subject on a transparent background",
+      "capabilities": [
+        "background-removal"
+      ],
+      "command": "aen matte",
+      "licence": "MIT",
+      "spdx": [
+        "MIT"
+      ],
+      "commercial_output": "the licence allows it (model card; not legal advice)",
+      "upstream": "https://github.com/ZhengPeng7/BiRefNet",
+      "path": "models/birefnet-lite",
+      "files": [
+        {
+          "path": "birefnet-general-lite.onnx",
+          "bytes": 224005088,
+          "sha256": "5600024376f572a557870a5eb0afb1e5961636bef4e1e22132025467d0f03333",
+          "url": "https://github.com/danielgatis/rembg/releases/download/v0.0.0/BiRefNet-general-bb_swin_v1_tiny-epoch_232.onnx"
+        }
+      ]
+    },
+    {
+      "id": "clip-vit-b32",
+      "name": "CLIP ViT-B/32",
+      "group": "scoring",
+      "default": false,
+      "summary": "Scores how well an image matches its prompt; image search by meaning",
+      "capabilities": [
+        "image-scoring",
+        "image-search"
+      ],
+      "command": "used by --candidates and the library",
+      "licence": "MIT (openai/CLIP repository)",
+      "spdx": [],
+      "commercial_output": "not used to make content",
+      "upstream": "https://huggingface.co/openai/clip-vit-base-patch32",
+      "note": "Published only as a PyTorch pickle; pinned by SHA-256 and loaded with weights-only loading.",
+      "path": "models/clip-vit-b32",
+      "files": [
+        {
+          "path": "config.json",
+          "bytes": 4186,
+          "sha256": "b575ef3c36f2a057fa19e221650105052d61cc9c1a972ec15019c6261ec98770",
+          "url": "https://huggingface.co/openai/clip-vit-base-patch32/resolve/3d74acf9a28c67741b2f4f2ea7635f0aaf6f0268/config.json"
+        },
+        {
+          "path": "merges.txt",
+          "bytes": 524657,
+          "sha256": "f526393189112391ce6f9795d4695f704121ce452c3aad1f5335cc41337eba85",
+          "url": "https://huggingface.co/openai/clip-vit-base-patch32/resolve/3d74acf9a28c67741b2f4f2ea7635f0aaf6f0268/merges.txt"
+        },
+        {
+          "path": "preprocessor_config.json",
+          "bytes": 316,
+          "sha256": "910e70b3956ac9879ebc90b22fb3bc8a75b6a0677814500101a4c072bd7857bd",
+          "url": "https://huggingface.co/openai/clip-vit-base-patch32/resolve/3d74acf9a28c67741b2f4f2ea7635f0aaf6f0268/preprocessor_config.json"
+        },
+        {
+          "path": "special_tokens_map.json",
+          "bytes": 389,
+          "sha256": "f8c0d6c39aee3f8431078ef6646567b0aba7f2246e9c54b8b99d55c22b707cbf",
+          "url": "https://huggingface.co/openai/clip-vit-base-patch32/resolve/3d74acf9a28c67741b2f4f2ea7635f0aaf6f0268/special_tokens_map.json"
+        },
+        {
+          "path": "tokenizer.json",
+          "bytes": 2224041,
+          "sha256": "b556ac8c99757ffb677208af34bc8c6721572114111a6e0aaf5fa69ff0b8d842",
+          "url": "https://huggingface.co/openai/clip-vit-base-patch32/resolve/3d74acf9a28c67741b2f4f2ea7635f0aaf6f0268/tokenizer.json"
+        },
+        {
+          "path": "tokenizer_config.json",
+          "bytes": 592,
+          "sha256": "34b7336e4bee12e0a9730eaf5189f582ef3c3eea5027f65730e5717256755aad",
+          "url": "https://huggingface.co/openai/clip-vit-base-patch32/resolve/3d74acf9a28c67741b2f4f2ea7635f0aaf6f0268/tokenizer_config.json"
+        },
+        {
+          "path": "vocab.json",
+          "bytes": 862328,
+          "sha256": "5047b556ce86ccaf6aa22b3ffccfc52d391ea4accdab9c2f2407da5b742d4363",
+          "url": "https://huggingface.co/openai/clip-vit-base-patch32/resolve/3d74acf9a28c67741b2f4f2ea7635f0aaf6f0268/vocab.json"
+        },
+        {
+          "path": "pytorch_model.bin",
+          "bytes": 605247071,
+          "sha256": "a63082132ba4f97a80bea76823f544493bffa8082296d62d71581a4feff1576f",
+          "url": "https://huggingface.co/openai/clip-vit-base-patch32/resolve/3d74acf9a28c67741b2f4f2ea7635f0aaf6f0268/pytorch_model.bin"
+        }
+      ]
+    },
+    {
+      "id": "clap-htsat",
+      "name": "CLAP HTSAT (unfused)",
+      "group": "scoring",
+      "default": false,
+      "summary": "Scores how well a sound matches its description",
+      "capabilities": [
+        "audio-scoring"
+      ],
+      "command": "used by --candidates",
+      "licence": "Apache-2.0",
+      "spdx": [],
+      "commercial_output": "not used to make content",
+      "upstream": "https://huggingface.co/laion/clap-htsat-unfused",
+      "note": "Published only as a PyTorch pickle; pinned by SHA-256 and loaded with weights-only loading.",
+      "path": "models/clap-htsat",
+      "files": [
+        {
+          "path": "config.json",
+          "bytes": 5390,
+          "sha256": "9efb9557bc804f2ca6e394486af2e45dfed0b18554909735a99c6220b84e4288",
+          "url": "https://huggingface.co/laion/clap-htsat-unfused/resolve/8fa0f1c6d0433df6e97c127f64b2a1d6c0dcda8a/config.json"
+        },
+        {
+          "path": "merges.txt",
+          "bytes": 456356,
+          "sha256": "fe36cab26d4f4421ed725e10a2e9ddb7f799449c603a96e7f29b5a3c82a95862",
+          "url": "https://huggingface.co/laion/clap-htsat-unfused/resolve/8fa0f1c6d0433df6e97c127f64b2a1d6c0dcda8a/merges.txt"
+        },
+        {
+          "path": "preprocessor_config.json",
+          "bytes": 541,
+          "sha256": "9739f58296aa6f9ac18008fd0150fb2649bc554985fbde86d0a4041c882ac753",
+          "url": "https://huggingface.co/laion/clap-htsat-unfused/resolve/8fa0f1c6d0433df6e97c127f64b2a1d6c0dcda8a/preprocessor_config.json"
+        },
+        {
+          "path": "special_tokens_map.json",
+          "bytes": 280,
+          "sha256": "06e405a36dfe4b9604f484f6a1e619af1a7f7d09e34a8555eb0b77b66318067f",
+          "url": "https://huggingface.co/laion/clap-htsat-unfused/resolve/8fa0f1c6d0433df6e97c127f64b2a1d6c0dcda8a/special_tokens_map.json"
+        },
+        {
+          "path": "tokenizer.json",
+          "bytes": 2108746,
+          "sha256": "77ef92283d67f0d97e1454909a964afcbfa2019f0fb9f18f8e88d5c25c3ba729",
+          "url": "https://huggingface.co/laion/clap-htsat-unfused/resolve/8fa0f1c6d0433df6e97c127f64b2a1d6c0dcda8a/tokenizer.json"
+        },
+        {
+          "path": "tokenizer_config.json",
+          "bytes": 384,
+          "sha256": "377f91458f7729a4574a84c77bdce67dbc3c58c1a345a29bbf8c4eb1307948a3",
+          "url": "https://huggingface.co/laion/clap-htsat-unfused/resolve/8fa0f1c6d0433df6e97c127f64b2a1d6c0dcda8a/tokenizer_config.json"
+        },
+        {
+          "path": "vocab.json",
+          "bytes": 798293,
+          "sha256": "ed19656ea1707df69134c4af35c8ceda2cc9860bf2c3495026153a133670ab5e",
+          "url": "https://huggingface.co/laion/clap-htsat-unfused/resolve/8fa0f1c6d0433df6e97c127f64b2a1d6c0dcda8a/vocab.json"
+        },
+        {
+          "path": "pytorch_model.bin",
+          "bytes": 614525833,
+          "sha256": "1cd3c601bc4afe0fa87be3de4c13dd2cfadd249fac1e29acf74a9b296c3219bb",
+          "url": "https://huggingface.co/laion/clap-htsat-unfused/resolve/8fa0f1c6d0433df6e97c127f64b2a1d6c0dcda8a/pytorch_model.bin"
+        }
+      ]
+    },
+    {
+      "id": "kokoro-82m",
+      "name": "Kokoro 82M (MLX bf16)",
+      "group": "speech",
+      "default": false,
+      "summary": "Text to speech, English voices; fast and small",
+      "capabilities": [
+        "text-to-speech"
+      ],
+      "command": "aen speech",
+      "licence": "Apache-2.0",
+      "spdx": [
+        "Apache-2.0"
+      ],
+      "commercial_output": "the licence allows it (model card; not legal advice)",
+      "upstream": "https://huggingface.co/hexgrad/Kokoro-82M",
+      "path": "models/kokoro-82m",
+      "files": [
+        {
+          "path": "config.json",
+          "bytes": 2351,
+          "sha256": "5abb01e2403b072bf03d04fde160443e209d7a0dad49a423be15196b9b43c17f",
+          "url": "https://huggingface.co/mlx-community/Kokoro-82M-bf16/resolve/a71e4d38b236d968966a2002c4c895dbd12b1c3c/config.json"
+        },
+        {
+          "path": "kokoro-v1_0.safetensors",
+          "bytes": 327115152,
+          "sha256": "4e9ecdf03b8b6cf906070390237feda473dc13327cb8d56a43deaa374c02acd8",
+          "url": "https://huggingface.co/mlx-community/Kokoro-82M-bf16/resolve/a71e4d38b236d968966a2002c4c895dbd12b1c3c/kokoro-v1_0.safetensors"
+        },
+        {
+          "path": "voices/af_heart.safetensors",
+          "bytes": 522320,
+          "sha256": "2c1c733b0e6576c810e268d3e440c21dea4e0f0131a3ba4cfc98d7fe6136d094",
+          "url": "https://huggingface.co/mlx-community/Kokoro-82M-bf16/resolve/a71e4d38b236d968966a2002c4c895dbd12b1c3c/voices/af_heart.safetensors"
+        },
+        {
+          "path": "voices/af_bella.safetensors",
+          "bytes": 522320,
+          "sha256": "112d310468cbb3cf23404d3d0b50ad3adf017b87bf38bf9edd15f4ad572df6a3",
+          "url": "https://huggingface.co/mlx-community/Kokoro-82M-bf16/resolve/a71e4d38b236d968966a2002c4c895dbd12b1c3c/voices/af_bella.safetensors"
+        },
+        {
+          "path": "voices/am_michael.safetensors",
+          "bytes": 522320,
+          "sha256": "3940147ded35deba0bb52e8132f89b719298e0520258c34584358aa5a24da2ea",
+          "url": "https://huggingface.co/mlx-community/Kokoro-82M-bf16/resolve/a71e4d38b236d968966a2002c4c895dbd12b1c3c/voices/am_michael.safetensors"
+        },
+        {
+          "path": "voices/am_adam.safetensors",
+          "bytes": 522320,
+          "sha256": "a4f60a3b9c20353c2604a17485ba53260502a758681a84d41e8af53cc559d929",
+          "url": "https://huggingface.co/mlx-community/Kokoro-82M-bf16/resolve/a71e4d38b236d968966a2002c4c895dbd12b1c3c/voices/am_adam.safetensors"
+        },
+        {
+          "path": "voices/bf_emma.safetensors",
+          "bytes": 522320,
+          "sha256": "8878a75a6661305849eeb1d6293a7177250193616e161b4c3100636434dfe69f",
+          "url": "https://huggingface.co/mlx-community/Kokoro-82M-bf16/resolve/a71e4d38b236d968966a2002c4c895dbd12b1c3c/voices/bf_emma.safetensors"
+        },
+        {
+          "path": "voices/bm_george.safetensors",
+          "bytes": 522320,
+          "sha256": "a3d9b8995cbbe5536f954b6be2a0f1f312f077118ba0d4d2178fc41dc8306672",
+          "url": "https://huggingface.co/mlx-community/Kokoro-82M-bf16/resolve/a71e4d38b236d968966a2002c4c895dbd12b1c3c/voices/bm_george.safetensors"
+        }
+      ]
     }
   ]
 }
