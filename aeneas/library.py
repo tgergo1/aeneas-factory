@@ -1,7 +1,7 @@
 """The asset library: one searchable index of everything generated and everything downloaded, with
 licences and provenance. It indexes files where they are; it never moves or copies them.
 
-Stored in ~/.aeneas/library.db (SQLite with full-text search). Image embeddings (CLIP), when the
+Stored in ~/.aeneas/library.db (SQLite with full-text search). Image embeddings (SigLIP), when the
 scoring models are installed, allow searching by meaning as well as by words."""
 import datetime
 import json
@@ -17,6 +17,8 @@ KINDS = {".png": "image", ".jpg": "image", ".jpeg": "image", ".webp": "image", "
          ".hdr": "image", ".glb": "model", ".gltf": "model", ".fbx": "model", ".obj": "model", ".blend": "model",
          ".wav": "audio", ".ogg": "audio", ".mp3": "audio", ".flac": "audio", ".bvh": "motion",
          ".ttf": "font", ".otf": "font"}
+
+STOP = {"the", "and", "with", "for", "from", "into", "onto", "over", "under", "near", "this", "that", "some", "any"}
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS assets (
@@ -109,7 +111,9 @@ def search(text=None, kind=None, licence=None, project=None, origin=None, limit=
     with db() as con:
         rows = []
         if text:
-            terms = " OR ".join('"' + t.replace('"', "") + '"' for t in text.split() if t.strip())
+            words = [t.replace('"', "") for t in text.lower().split()]
+            words = [t for t in words if len(t) > 2 and t not in STOP] or words  # "a car on a road": car, road
+            terms = " OR ".join(f'"{t}"' for t in words if t)
             q = ("SELECT a.*, bm25(assets_fts) AS rank FROM assets_fts JOIN assets a ON a.id = assets_fts.rowid "
                  "WHERE assets_fts MATCH ?" + "".join(" AND " + w for w in where) + " ORDER BY rank LIMIT ?")
             rows = [dict(r) for r in con.execute(q, [terms, *args, limit * 3])]
@@ -124,8 +128,8 @@ def search(text=None, kind=None, licence=None, project=None, origin=None, limit=
     return rows[:limit]
 
 
-def _semantic(con, text, rows, where, args, limit):
-    """Blend in images whose CLIP embedding matches the text, when embeddings exist."""
+def _semantic(con, text, rows, where, args, limit, threshold=0.01):
+    """Blend in images whose SigLIP embedding matches the text (SigLIP's own match probability)."""
     try:
         from . import scoring
         if not scoring.available("image"):
@@ -134,12 +138,30 @@ def _semantic(con, text, rows, where, args, limit):
     except Exception:
         return rows
     sql = "SELECT a.* FROM assets a WHERE a.embedding IS NOT NULL" + "".join(" AND " + w for w in where)
-    cands = [dict(r) for r in con.execute(sql, args)]
-    for r in cands:
-        r["similarity"] = float(np.frombuffer(r["embedding"], dtype=np.float32) @ q)
+    cands = []
+    for r in (dict(r) for r in con.execute(sql, args)):
+        e = np.frombuffer(r["embedding"], dtype=np.float32)
+        if e.size == q.size:  # skip embeddings from another model; `aen library reindex` refreshes them
+            r["cosine"] = float(e @ q)
+            cands.append(r)
+    if not cands:
+        return rows
+    for r, p in zip(cands, scoring.match_probability([r["cosine"] for r in cands])):
+        r["similarity"] = round(p, 3)
     seen = {r["path"] for r in rows}
-    best = sorted((r for r in cands if r["similarity"] > 0.22), key=lambda r: -r["similarity"])[:limit]
+    best = sorted((r for r in cands if r["similarity"] >= threshold), key=lambda r: -r["similarity"])[:limit]
     return rows + [r for r in best if r["path"] not in seen]
+
+
+def reindex():
+    """Recompute image embeddings with the current scoring model."""
+    n = 0
+    with db() as con:
+        for r in con.execute("SELECT id, path FROM assets WHERE kind = 'image'").fetchall():
+            if Path(r["path"]).exists():
+                con.execute("UPDATE assets SET embedding = ? WHERE id = ?", (_embed(r["path"], "image"), r["id"]))
+                n += 1
+    return n
 
 
 def get(path):
@@ -183,6 +205,8 @@ def credits(project):
             m = registry.model(mid)
             lines.append(f"- **{m['name']}** ({m['licence']}; {m['upstream']}): {len(files)} file(s), e.g. "
                          + ", ".join(sorted(files)[:5]))
+            if m.get("attribution"):
+                lines.append(f"  - **{m['attribution']}** (required by its licence: show it with the work)")
         lines.append("\nEach generated file has a provenance record beside it (`<file>.json`) and inside it.")
     return "\n".join(lines) + "\n"
 

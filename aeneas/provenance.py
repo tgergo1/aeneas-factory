@@ -44,8 +44,11 @@ def versions(tools=()):
 
 def model_entry(model_id):
     m = registry.model(model_id)
-    return {"id": m["id"], "name": m["name"], "upstream": m["upstream"], "licence": m["licence"],
-            "licence_allows_commercial_use": m["commercial_output"], "files": registry.file_record(model_id)}
+    e = {"id": m["id"], "name": m["name"], "upstream": m["upstream"], "licence": m["licence"],
+         "licence_allows_commercial_use": m["commercial_output"], "files": registry.file_record(model_id)}
+    if m.get("attribution"):
+        e["attribution_required"] = m["attribution"]
+    return e
 
 
 def record(out, tool, model_ids, tools, cmd, started, prompt=None, negative_prompt=None, seed=None, params=None,

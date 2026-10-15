@@ -74,7 +74,7 @@
     <rect class="core-t" x="585" y="300" width="160" height="76" rx="9"/>
     <text class="txt" x="599" y="324" font-weight="650">4 · candidates</text>
     <text class="mut" x="599" y="344">make several, rank by</text>
-    <text class="mut" x="599" y="361">CLIP / CLAP, keep best</text>
+    <text class="mut" x="599" y="361">SigLIP / CLAP, keep best</text>
     <rect class="prv-t" x="760" y="300" width="185" height="76" rx="9"/>
     <text class="txt" x="774" y="324" font-weight="650">5 · provenance</text>
     <text class="mut" x="774" y="344">in the file and beside it:</text>
@@ -145,12 +145,12 @@
     <text class="mut" x="58" y="790">SHA-256 checked; all four core models 40.5 GB</text>
     <rect class="box" x="422" y="720" width="355" height="96" rx="12"/>
     <text class="txt mono" x="440" y="748" font-size="14.5" font-weight="700">aen check · make test · CI</text>
-    <text class="mut" x="440" y="772">a real job through every generator; 26 tests;</text>
+    <text class="mut" x="440" y="772">a real job through every generator; 29 tests;</text>
     <text class="mut" x="440" y="790">weekly check that every pinned download answers</text>
     <rect class="box" x="805" y="720" width="355" height="96" rx="12"/>
     <text class="txt mono" x="823" y="748" font-size="14.5" font-weight="700">AGENTS.md</text>
     <text class="mut" x="823" y="772">how agents should use it, plus Blender, GIMP</text>
     <text class="mut" x="823" y="790">and free asset libraries, with licence rules</text>
   </g>
-  <text class="faint" x="40" y="842" font-size="11.5">Tested on macOS 27 · Apple M5 Pro, 64 GB · 2026-10-15. TRELLIS.2's dinov3.gguf is under Meta's DINOv3 License: downloading it needs ACCEPT=dinov3.</text>
+  <text class="faint" x="40" y="842" font-size="11.5">Tested on macOS 27 · Apple M5 Pro, 64 GB · 2026-10-15. 3D: Built with DINOv3 (Meta's DINOv3 License; download needs ACCEPT=dinov3).</text>
 </svg>

@@ -88,3 +88,25 @@ def test_service_refuses_writing_into_the_factory(server):
     from aeneas.paths import ROOT
     with pytest.raises(ValueError):
         service.check_spec("op", {"op": "fake", "args": {"out": str(ROOT / "bin" / "x.png")}})
+
+
+def test_dinov3_attribution_in_records_and_credits(tmp_path, noise_png):
+    from aeneas import provenance
+    entry = provenance.model_entry("trellis2")
+    assert entry["attribution_required"] == "Built with DINOv3"
+    assert "attribution_required" not in provenance.model_entry("z-image-turbo")
+    proj = tmp_path / "game"
+    (proj / ".git").mkdir(parents=True)
+    f = proj / "model_preview.png"
+    f.write_bytes(noise_png.read_bytes())
+    library.add_generated(f, {"models": [entry], "prompt": "a crate"})
+    assert "Built with DINOv3" in library.credits(proj)
+
+
+def test_search_ignores_filler_words(tmp_path, noise_png):
+    f = tmp_path / "p" / "x.png"
+    f.parent.mkdir()
+    f.write_bytes(noise_png.read_bytes())
+    library.add_generated(f, {"models": [], "prompt": "a brass lantern on a table"})
+    assert not [r for r in library.search("a car on a road") if r["path"] == str(f.resolve()) and not r.get("similarity")]
+    assert [r for r in library.search("brass lantern") if r["path"] == str(f.resolve())]

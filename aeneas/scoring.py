@@ -1,4 +1,4 @@
-"""Ranking candidates by how well they match the prompt: CLIP for images, CLAP for sound.
+"""Ranking candidates by how well they match the prompt: SigLIP for images, CLAP for sound.
 Optional: needs `make scoring` (torch, transformers) and `make models-scoring`. Without them the
 factory still runs and candidates are ranked by the automatic checks only."""
 import functools
@@ -15,7 +15,7 @@ logging.getLogger("torch.distributed.elastic.multiprocessing.redirects").setLeve
 
 from . import registry
 
-IMAGE_MODEL, AUDIO_MODEL = "clip-vit-b32", "clap-htsat"
+IMAGE_MODEL, AUDIO_MODEL = "siglip-base-p16", "clap-htsat"
 
 
 def available(kind):
@@ -33,11 +33,11 @@ def _device():
 
 
 @functools.lru_cache(maxsize=1)
-def _clip():
-    from transformers import CLIPModel, CLIPProcessor
+def _siglip():
+    from transformers import AutoModel, AutoProcessor
     path = registry.model_path(IMAGE_MODEL)
-    model = CLIPModel.from_pretrained(path).eval().to(_device())
-    return model, CLIPProcessor.from_pretrained(path)
+    model = AutoModel.from_pretrained(path).eval().to(_device())
+    return model, AutoProcessor.from_pretrained(path)
 
 
 @functools.lru_cache(maxsize=1)
@@ -61,7 +61,7 @@ def _features(out):
 def image_embeddings(paths):
     import torch
     from PIL import Image
-    model, proc = _clip()
+    model, proc = _siglip()
     ims = [Image.open(p).convert("RGB") for p in paths]
     with torch.no_grad():
         x = proc(images=ims, return_tensors="pt").to(_device())
@@ -70,14 +70,22 @@ def image_embeddings(paths):
 
 def text_embeddings(texts):
     import torch
-    model, proc = _clip()
-    with torch.no_grad():
-        x = proc(text=texts, return_tensors="pt", padding=True, truncation=True).to(_device())
+    model, proc = _siglip()
+    with torch.no_grad():  # SigLIP was trained with texts padded to 64 tokens
+        x = proc(text=texts, return_tensors="pt", padding="max_length", max_length=64, truncation=True).to(_device())
         return _norm(_features(model.get_text_features(**x)))
 
 
+def match_probability(cosines):
+    """SigLIP's own calibrated probability that an image matches a text, from cosine similarities."""
+    model, _ = _siglip()
+    scale, bias = float(model.logit_scale.detach().exp()), float(model.logit_bias.detach())
+    c = np.asarray(cosines, dtype=np.float64)
+    return (1 / (1 + np.exp(-(c * scale + bias)))).tolist()
+
+
 def image_scores(paths, text):
-    """Cosine similarity of each image to the text, in [−1, 1]; higher is a better match."""
+    """Cosine similarity of each image to the text; higher is a better match (ranking only)."""
     return (image_embeddings(paths) @ text_embeddings([text])[0]).tolist()
 
 

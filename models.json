@@ -166,9 +166,10 @@
           "files": [
             "dinov3.gguf"
           ],
-          "why": "Meta gates DINOv3 behind its own licence agreement on Hugging Face; this file comes from an ungated GGUF conversion (ilintar/trellis2-gguf), so the factory asks you to read and accept the licence yourself."
+          "why": "Meta gates DINOv3 behind its licence agreement on Hugging Face; this file comes from an ungated GGUF conversion (ilintar/trellis2-gguf), so the factory asks you to read and accept the licence yourself. Using the file counts as accepting it. It allows commercial use, requires 'Built with DINOv3' to be shown prominently where you distribute DINOv3 or derivatives (and a copy of the licence), and forbids among other things military, weapons and espionage uses and use by parties under trade controls."
         }
-      ]
+      ],
+      "attribution": "Built with DINOv3"
     },
     {
       "id": "moss-sfx",
@@ -333,8 +334,8 @@
       ]
     },
     {
-      "id": "clip-vit-b32",
-      "name": "CLIP ViT-B/32",
+      "id": "siglip-base-p16",
+      "name": "SigLIP base, patch 16, 224 px",
       "group": "scoring",
       "default": false,
       "summary": "Scores how well an image matches its prompt; image search by meaning",
@@ -343,60 +344,54 @@
         "image-search"
       ],
       "command": "used by --candidates and the library",
-      "licence": "MIT (openai/CLIP repository)",
+      "licence": "Apache-2.0",
       "spdx": [],
       "commercial_output": "not used to make content",
-      "upstream": "https://huggingface.co/openai/clip-vit-base-patch32",
-      "note": "Published only as a PyTorch pickle; pinned by SHA-256 and loaded with weights-only loading.",
-      "path": "models/clip-vit-b32",
+      "upstream": "https://huggingface.co/google/siglip-base-patch16-224",
+      "note": "Its card names zero-shot classification and image-text retrieval as intended uses. Replaced OpenAI CLIP on 2026-10-15, whose card puts any deployed use out of scope.",
+      "path": "models/siglip-base-p16",
       "files": [
         {
           "path": "config.json",
-          "bytes": 4186,
-          "sha256": "b575ef3c36f2a057fa19e221650105052d61cc9c1a972ec15019c6261ec98770",
-          "url": "https://huggingface.co/openai/clip-vit-base-patch32/resolve/3d74acf9a28c67741b2f4f2ea7635f0aaf6f0268/config.json"
+          "bytes": 432,
+          "sha256": "cd85b3d28829722820bcb89a2cfbb4160e55fd359249a3044da724166a8d9688",
+          "url": "https://huggingface.co/google/siglip-base-patch16-224/resolve/7fd15f0689c79d79e38b1c2e2e2370a7bf2761ed/config.json"
         },
         {
-          "path": "merges.txt",
-          "bytes": 524657,
-          "sha256": "f526393189112391ce6f9795d4695f704121ce452c3aad1f5335cc41337eba85",
-          "url": "https://huggingface.co/openai/clip-vit-base-patch32/resolve/3d74acf9a28c67741b2f4f2ea7635f0aaf6f0268/merges.txt"
+          "path": "model.safetensors",
+          "bytes": 812672320,
+          "sha256": "2c63cb7d1f2e95ba501893cbb8faeb4ea9a3af295498d35097126228659c2af8",
+          "url": "https://huggingface.co/google/siglip-base-patch16-224/resolve/7fd15f0689c79d79e38b1c2e2e2370a7bf2761ed/model.safetensors"
         },
         {
           "path": "preprocessor_config.json",
-          "bytes": 316,
-          "sha256": "910e70b3956ac9879ebc90b22fb3bc8a75b6a0677814500101a4c072bd7857bd",
-          "url": "https://huggingface.co/openai/clip-vit-base-patch32/resolve/3d74acf9a28c67741b2f4f2ea7635f0aaf6f0268/preprocessor_config.json"
+          "bytes": 368,
+          "sha256": "d11ccb80f15d358a11bdb070e92e2d889005874b7db15823d5f10d9b2533b14a",
+          "url": "https://huggingface.co/google/siglip-base-patch16-224/resolve/7fd15f0689c79d79e38b1c2e2e2370a7bf2761ed/preprocessor_config.json"
         },
         {
           "path": "special_tokens_map.json",
-          "bytes": 389,
-          "sha256": "f8c0d6c39aee3f8431078ef6646567b0aba7f2246e9c54b8b99d55c22b707cbf",
-          "url": "https://huggingface.co/openai/clip-vit-base-patch32/resolve/3d74acf9a28c67741b2f4f2ea7635f0aaf6f0268/special_tokens_map.json"
+          "bytes": 409,
+          "sha256": "2b6a1ff67a27e0df9ac0c7d93250fc0d87431c7b366b3d5669217104f9088a26",
+          "url": "https://huggingface.co/google/siglip-base-patch16-224/resolve/7fd15f0689c79d79e38b1c2e2e2370a7bf2761ed/special_tokens_map.json"
+        },
+        {
+          "path": "spiece.model",
+          "bytes": 798330,
+          "sha256": "1e5036bed065526c3c212dfbe288752391797c4bb1a284aa18c9a0b23fcaf8ec",
+          "url": "https://huggingface.co/google/siglip-base-patch16-224/resolve/7fd15f0689c79d79e38b1c2e2e2370a7bf2761ed/spiece.model"
         },
         {
           "path": "tokenizer.json",
-          "bytes": 2224041,
-          "sha256": "b556ac8c99757ffb677208af34bc8c6721572114111a6e0aaf5fa69ff0b8d842",
-          "url": "https://huggingface.co/openai/clip-vit-base-patch32/resolve/3d74acf9a28c67741b2f4f2ea7635f0aaf6f0268/tokenizer.json"
+          "bytes": 2399357,
+          "sha256": "c6e405cb7c670d56636a9402c81023a55bc6c3c53d89cf02b92f5c5005bfe920",
+          "url": "https://huggingface.co/google/siglip-base-patch16-224/resolve/7fd15f0689c79d79e38b1c2e2e2370a7bf2761ed/tokenizer.json"
         },
         {
           "path": "tokenizer_config.json",
-          "bytes": 592,
-          "sha256": "34b7336e4bee12e0a9730eaf5189f582ef3c3eea5027f65730e5717256755aad",
-          "url": "https://huggingface.co/openai/clip-vit-base-patch32/resolve/3d74acf9a28c67741b2f4f2ea7635f0aaf6f0268/tokenizer_config.json"
-        },
-        {
-          "path": "vocab.json",
-          "bytes": 862328,
-          "sha256": "5047b556ce86ccaf6aa22b3ffccfc52d391ea4accdab9c2f2407da5b742d4363",
-          "url": "https://huggingface.co/openai/clip-vit-base-patch32/resolve/3d74acf9a28c67741b2f4f2ea7635f0aaf6f0268/vocab.json"
-        },
-        {
-          "path": "pytorch_model.bin",
-          "bytes": 605247071,
-          "sha256": "a63082132ba4f97a80bea76823f544493bffa8082296d62d71581a4feff1576f",
-          "url": "https://huggingface.co/openai/clip-vit-base-patch32/resolve/3d74acf9a28c67741b2f4f2ea7635f0aaf6f0268/pytorch_model.bin"
+          "bytes": 711,
+          "sha256": "d6423dae508cc3a129d22ea443841c111832a1a73125b8f25ea8736951698bcb",
+          "url": "https://huggingface.co/google/siglip-base-patch16-224/resolve/7fd15f0689c79d79e38b1c2e2e2370a7bf2761ed/tokenizer_config.json"
         }
       ]
     },

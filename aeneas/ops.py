@@ -1,7 +1,7 @@
 """Operations: what the factory can make. Each one checks the licence policy, runs an engine,
 checks the result (a blank image or silent sound is a failure, not a result), writes provenance
 into and beside the file, and adds it to the asset library. Optionally it makes several candidates
-and ranks them. The command line, the service and the MCP server all go through here."""
+and ranks them (SigLIP for images, CLAP for sound). The command line, the service and the MCP server all go through here."""
 import random
 import shutil
 from dataclasses import dataclass, field
@@ -83,7 +83,7 @@ def _candidates(ctx, out, n, seed, make_one, score_fn, label):
     public = [{k: v for k, v in c.items() if k != "path"} for c in listing]  # records never hold absolute paths
     rec = dict(best["rec"], output=out.name,
                selection={"candidates": n, "passed_checks": len(good),
-                          "ranked_by": ("CLIP" if out.suffix == ".png" else "CLAP") if scores else "first that passed",
+                          "ranked_by": ("SigLIP" if out.suffix == ".png" else "CLAP") if scores else "first that passed",
                           "chosen_seed": best["seed"], "all": public})
     return rec, listing
 

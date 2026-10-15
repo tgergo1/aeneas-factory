@@ -29,7 +29,7 @@ All three ways in end in the same function calls (`aeneas/ops.py`), so policy, c
 
 **Checks before success.** The Metal VAE decode of this stable-diffusion.cpp build returns blank white images (checked again 2026-10-15), and the first version of this repository reported them as successes. Every output now passes a check for its kind: image spread, tile seams, audio level, mesh vertex count and extent, cut-out coverage.
 
-**Candidates and ranking.** Single generations are the weakest link. `--candidates N` uses consecutive seeds, drops failures, and ranks by CLIP (images) or CLAP (sound) similarity to the prompt when the scoring models are installed; otherwise the first that passes wins. All candidates stay on disk and in the record.
+**Candidates and ranking.** Single generations are the weakest link. `--candidates N` uses consecutive seeds, drops failures, and ranks by SigLIP (images) or CLAP (sound) similarity to the prompt when the scoring models are installed; otherwise the first that passes wins. All candidates stay on disk and in the record.
 
 **Provenance inside and beside the file.** A sidecar is easy to lose, an embedded record survives copying. PNG gets an `iTXt` chunk, GLB an `asset.extras` entry, WAV a `LIST/INFO` comment. The sidecar adds the final file's SHA-256 (the embedded copy cannot contain its own hash). Records list each model file's SHA-256 and URL and the git commit of every tool and of the factory.
 
@@ -39,7 +39,9 @@ All three ways in end in the same function calls (`aeneas/ops.py`), so policy, c
 
 **ComfyUI as an engine, not the core.** ComfyUI changes often and custom nodes break, so the factory's core does not depend on it. It is an optional engine and a place for people to explore, reading the same model files: the factory's `AeneasUnetLoaderGGUF` node reshapes the two pad tokens that differ between stable-diffusion.cpp's and ComfyUI's GGUF layouts, so one 6.6 GB file serves both.
 
-**Pickled scoring models.** CLIP and CLAP are only published as PyTorch pickles. They only rank candidates and never shape the output, they are pinned by SHA-256, and transformers loads them with weights-only loading.
+**Scoring models.** Image ranking and search use SigLIP (Apache-2.0, safetensors), whose card names image-text retrieval as an intended use; OpenAI's CLIP was used first and replaced because its card puts any deployed use out of scope. CLAP (Apache-2.0) ranks sound; it is only published as a PyTorch pickle, so it is pinned by SHA-256 and loaded with weights-only loading. Scoring only ranks candidates and never shapes the output.
+
+**DINOv3 attribution.** TRELLIS.2's features come from DINOv3, whose licence requires "Built with DINOv3" where DINOv3 or derivatives are distributed. The register carries the attribution; every 3D record and credits page repeats it; the README shows it.
 
 ## Security model
 
@@ -56,7 +58,7 @@ All three ways in end in the same function calls (`aeneas/ops.py`), so policy, c
 |---|---|
 | sd-cli image 1024 px, 8 steps | 110 s: load 6 s, sampling 67 s, VAE decode on CPU 40 s |
 | Same with the Metal VAE decode | 77 s, but blank |
-| Three 512 px candidates ranked by CLIP | 75 s |
+| Three 512 px candidates ranked by prompt match | 75 s |
 | ComfyUI image 512 px, 8 steps | 41 s |
 | TRELLIS.2 res 512 / 1024 | about 5 min / 24 min |
 | MOSS 2 s at 10 steps / 5 s at 100 steps | 19 s / about 2 min |

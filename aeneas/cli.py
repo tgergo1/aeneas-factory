@@ -248,6 +248,8 @@ def cmd_library(a):
             print(text)
     elif a.action == "prune":
         print(f"removed {library.remove_missing()} entries whose files are gone")
+    elif a.action == "reindex":
+        print(f"re-embedded {library.reindex()} image(s) with the current scoring model")
 
 
 def cmd_policy(a):
@@ -366,8 +368,8 @@ def main(argv=None):
     p.add_argument("--skip", action="append", default=[], choices=["image", "klein", "sfx", "3d"])
     p.add_argument("--keep"); p.set_defaults(func=cmd_check)
 
-    p = sub.add_parser("library", help="asset library: search, import, show, credits, prune")
-    p.add_argument("action", choices=["search", "import", "show", "credits", "prune"]); p.add_argument("args", nargs="*")
+    p = sub.add_parser("library", help="asset library: search, import, show, credits, prune, reindex")
+    p.add_argument("action", choices=["search", "import", "show", "credits", "prune", "reindex"]); p.add_argument("args", nargs="*")
     for opt in ("--kind", "--licence", "--project", "--origin", "--source", "--url", "--author", "--tags", "--write"):
         p.add_argument(opt)
     p.add_argument("--limit", type=int, default=20); p.set_defaults(func=cmd_library)

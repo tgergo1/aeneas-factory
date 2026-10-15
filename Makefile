@@ -127,7 +127,7 @@ models-3d: ## TRELLIS.2 (16.5 GB); needs ACCEPT=dinov3 after reading the DINOv3 
 	$(AEN) models download 3d $(ACCEPT_FLAGS)
 models-sound: ## MOSS-SoundEffect (8.4 GB)
 	$(AEN) models download sound
-models-scoring: ## CLIP and CLAP for ranking candidates (1.2 GB)
+models-scoring: ## SigLIP and CLAP for ranking candidates (1.4 GB)
 	$(AEN) models download scoring
 models-upscale: ## Real-ESRGAN x4 (67 MB)
 	$(AEN) models download upscale
@@ -135,7 +135,7 @@ models-matte: ## BiRefNet lite for background removal (224 MB)
 	$(AEN) models download matte
 models-speech: ## Kokoro 82M with six voices (330 MB)
 	$(AEN) models download speech
-models-extras: models-scoring models-upscale models-matte models-speech ## All optional models (1.8 GB)
+models-extras: models-scoring models-upscale models-matte models-speech ## All optional models (2.1 GB)
 
 check: ## Health check with a tiny job through every installed generator (about 8 minutes)
 	$(AEN) check

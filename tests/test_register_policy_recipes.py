@@ -64,3 +64,11 @@ def test_style_applies():
     p, neg, model, refs, loras, _ = styles.apply_image(st, "a cottage", "blurry")
     assert p.startswith("a cottage") and "storybook" in p and "blurry" in neg and model == "z-image-turbo"
     assert set(styles.list_styles()) >= {"storybook", "photoreal"}
+
+
+def test_scoring_models_are_ones_whose_cards_allow_this_use():
+    ids = {m["id"] for m in registry.models()}
+    assert "clip-vit-b32" not in ids  # OpenAI's card puts any deployed use out of scope
+    assert {"siglip-base-p16", "clap-htsat"} <= ids
+    from aeneas import scoring
+    assert scoring.IMAGE_MODEL == "siglip-base-p16"

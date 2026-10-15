@@ -2,6 +2,8 @@
 
 **Local generation of images, textures, 3D models, sound effects and speech on a Mac, built so that AI agents can use it safely and every result can be trusted.** Open models, pinned and checksummed. One shared service with a job queue. An MCP server for Claude Code and Codex. Automatic checks so a blank image is never reported as a success. Provenance written into every file. A licence policy per project. Recipes that turn a request into a finished asset. A searchable library of everything made or downloaded.
 
+**Built with DINOv3**: the 3D generator (TRELLIS.2) uses Meta's DINOv3 image features under the [DINOv3 License](https://ai.meta.com/resources/models-and-libraries/dinov3-license); see [Licences](#licences).
+
 <p align="center">
   <img src="docs/factory.svg" alt="Diagram: agents use the MCP server, scripts the aen command line, people ComfyUI and Blender. All work goes through one factory service: licence policy, engine, checks, ranked candidates, provenance, asset library. Engines: stable-diffusion.cpp (Z-Image Turbo, FLUX.2 klein), trellis.cpp (TRELLIS.2), MLX (MOSS-SoundEffect, Kokoro), Real-ESRGAN, BiRefNet, ComfyUI, Blender, ffmpeg." width="100%">
 </p>
@@ -12,7 +14,7 @@
 |---|---|
 | **Generate** | Images from text (Z-Image Turbo, FLUX.2 [klein] 4B), image editing from references, seamless textures with PBR maps, textured 3D models from one image (TRELLIS.2), sound effects (MOSS-SoundEffect), speech (Kokoro), 4x upscaling (Real-ESRGAN), background removal (BiRefNet) |
 | **Check** | Every output is checked before it counts: blank or flat images, visible seams in tiles, silent audio, empty or flat meshes. A failure is an error, never a result |
-| **Choose** | `--candidates N` makes several, drops the failures, ranks the rest by how well they match the prompt (CLIP for images, CLAP for sound) and keeps the best, recording all of them |
+| **Choose** | `--candidates N` makes several, drops the failures, ranks the rest by how well they match the prompt (SigLIP for images, CLAP for sound) and keeps the best, recording all of them |
 | **Record** | Provenance inside the file (PNG text, glTF `extras`, WAV `INFO`) and beside it (`<file>.json`): the models with every file's SHA-256, the factory and tool versions, prompt, seed, settings, checks and the licence policy that applied |
 | **Govern** | A per-project licence policy (`.aeneas/policy.toml`) decides which models and downloaded assets may be used. Models whose licence asks for agreement (DINOv3) download only after you accept it |
 | **Assemble** | Recipes run several steps in a row: `prop` (concept → 3D → Blender clean-up to real size with LODs), `texture` (tile → PBR set), `sfx` (takes → trimmed, -18 LUFS), `sprite` (art → cut-out) |
@@ -42,7 +44,7 @@ These came out of one command each, through the factory service, with every inte
 | | | |
 |---|---|---|
 | <img src="docs/gallery/recipes/bucket-render.png" width="100%" alt="A game-ready wooden bucket model"> | <img src="docs/gallery/recipes/oak-2x2.png" width="100%" alt="An oak plank texture tiled 2x2"> | <img src="docs/gallery/recipes/key.png" width="100%" alt="A golden key on a transparent background"> |
-| **`prop`**: best of 2 concept images → TRELLIS.2 → Blender: 0.4 m tall, origin at the bottom, 149,556 faces cut to LODs of 20,000 / 10,000 / 5,000 ([`bucket.glb`](docs/gallery/recipes/bucket.glb), [manifest](docs/gallery/recipes/bucket-manifest.json)). 11.6 minutes | **`texture`**: best of 2 tiles by CLIP, seam checked (edge jump 0.53x the texture's own detail), plus height, [normal](docs/gallery/recipes/oak-normal.png), roughness and AO maps | **`sprite`**: best of 2 images, cut out onto transparency with BiRefNet |
+| **`prop`**: best of 2 concept images → TRELLIS.2 → Blender: 0.4 m tall, origin at the bottom, 149,556 faces cut to LODs of 20,000 / 10,000 / 5,000 ([`bucket.glb`](docs/gallery/recipes/bucket.glb), [manifest](docs/gallery/recipes/bucket-manifest.json)). 11.6 minutes | **`texture`**: best of 2 tiles by prompt match, seam checked (edge jump 0.53x the texture's own detail), plus height, [normal](docs/gallery/recipes/oak-normal.png), roughness and AO maps | **`sprite`**: best of 2 images, cut out onto transparency with BiRefNet |
 
 <img src="docs/gallery/recipes/door-wave.png" width="100%" alt="Waveform of the generated door sound">
 
@@ -61,7 +63,7 @@ Everything (all four core models, 40.5 GB; read the [DINOv3 licence](https://ai.
 
 ```bash
 make install ACCEPT=dinov3
-make extras models-extras                 # optional: ranking, background removal, speech, upscaling (1.8 GB)
+make extras models-extras                 # optional: ranking, background removal, speech, upscaling (2.1 GB)
 ```
 
 Then:
@@ -148,11 +150,11 @@ ComfyUI uses the same GGUF files as `sd-cli`. The factory ships a small ComfyUI 
 | MOSS-SoundEffect v2.0 (MLX bf16) | sound | 8.4 GB | Sound effects, foley and ambience from a description; 48 kHz, up to 30 s | Apache-2.0. | [huggingface.co/OpenMOSS-Team/MOSS-SoundEffect-v2.0](https://huggingface.co/OpenMOSS-Team/MOSS-SoundEffect-v2.0) |
 | Real-ESRGAN x4plus | upscale (optional) | 67 MB | Four times larger images, general photos and renders | BSD-3-Clause. | [github.com/xinntao/Real-ESRGAN](https://github.com/xinntao/Real-ESRGAN) |
 | BiRefNet general lite (ONNX, for rembg) | matte (optional) | 224 MB | Background removal: the subject on a transparent background | MIT. | [github.com/ZhengPeng7/BiRefNet](https://github.com/ZhengPeng7/BiRefNet) |
-| CLIP ViT-B/32 | scoring (optional) | 609 MB | Scores how well an image matches its prompt; image search by meaning | MIT (openai/CLIP repository). | [huggingface.co/openai/clip-vit-base-patch32](https://huggingface.co/openai/clip-vit-base-patch32) |
+| SigLIP base, patch 16, 224 px | scoring (optional) | 816 MB | Scores how well an image matches its prompt; image search by meaning | Apache-2.0. | [huggingface.co/google/siglip-base-patch16-224](https://huggingface.co/google/siglip-base-patch16-224) |
 | CLAP HTSAT (unfused) | scoring (optional) | 618 MB | Scores how well a sound matches its description | Apache-2.0. | [huggingface.co/laion/clap-htsat-unfused](https://huggingface.co/laion/clap-htsat-unfused) |
 | Kokoro 82M (MLX bf16) | speech (optional) | 330 MB | Text to speech, English voices; fast and small | Apache-2.0. | [huggingface.co/hexgrad/Kokoro-82M](https://huggingface.co/hexgrad/Kokoro-82M) |
 
-The four core models total **40.5 GB**; the optional ones **1.8 GB**. Every file's URL (pinned to a commit or release), size and SHA-256 are in [`models.json`](models.json).
+The four core models total **40.5 GB**; the optional ones **2.1 GB**. Every file's URL (pinned to a commit or release), size and SHA-256 are in [`models.json`](models.json).
 <!-- models:end -->
 
 | Tool | Pinned | Licence | Used for |
@@ -175,7 +177,7 @@ Measured on the M5 Pro:
 | Job | Time |
 |---|---|
 | Image, 1024 px (Z-Image, 8 steps) | about 2 to 3 minutes; most of it is the VAE decode, kept on the CPU because the Metal decode gives blank images with this build |
-| Image, 512 px, 4 steps; three candidates ranked by CLIP | about 20 s each; 75 s for all three |
+| Image, 512 px, 4 steps; three candidates ranked by prompt match | about 20 s each; 75 s for all three |
 | Image through ComfyUI, 512 px, 8 steps | 41 s |
 | 3D, res 512 / res 1024 | about 5 minutes / about 24 minutes |
 | Sound effect, 2 s at 10 steps / 5 s at 100 steps | 19 s / about 2 minutes |
@@ -186,12 +188,12 @@ The sound model needs about 14 GB of GPU memory; the service unloads it after fi
 
 ## Security
 
-The service listens on 127.0.0.1 only. Every request needs the token in `~/.aeneas/service.json`, which only you can read. Requests with a browser `Origin` header, or a `Host` other than localhost, are refused, so web pages cannot drive it. It runs only the factory's own operations and recipes, reads inputs and writes outputs only under your home folder and never inside the factory, and never downloads anything. Model downloads go through `aen models download`, which checks every file's SHA-256 against [`models.json`](models.json). Two scoring models (CLIP, CLAP) exist only as PyTorch pickles; they are pinned by SHA-256 and loaded with weights-only loading.
+The service listens on 127.0.0.1 only. Every request needs the token in `~/.aeneas/service.json`, which only you can read. Requests with a browser `Origin` header, or a `Host` other than localhost, are refused, so web pages cannot drive it. It runs only the factory's own operations and recipes, reads inputs and writes outputs only under your home folder and never inside the factory, and never downloads anything. Model downloads go through `aen models download`, which checks every file's SHA-256 against [`models.json`](models.json). One scoring model (CLAP) exists only as a PyTorch pickle; it is pinned by SHA-256 and loaded with weights-only loading.
 
 ## Development
 
 ```bash
-make test           # 26 tests, no models or GPU needed
+make test           # 29 tests, no models or GPU needed
 python scripts/gen_docs.py --check    # the docs agree with models.json
 .venv/bin/python scripts/mcp_smoke.py ~/some/project    # the MCP path end to end
 ```
@@ -208,8 +210,8 @@ CI ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) runs the tests and t
 
 ## Licences
 
-The code and documents here are under the [MIT License](LICENSE), and so are the gallery images. Tools and models keep their own licences (tables above; per file in `models.json`). Z-Image Turbo, Qwen3-4B, FLUX.2 [klein] 4B, MOSS-SoundEffect and Kokoro are Apache-2.0; TRELLIS.2, BiRefNet and Real-ESRGAN are MIT or BSD. **TRELLIS.2's `dinov3.gguf` is under Meta's [DINOv3 License](https://ai.meta.com/resources/models-and-libraries/dinov3-license)**, so it downloads only with `ACCEPT=dinov3`. The 9B FLUX.2 klein models are non-commercial; this repository uses only the 4B one. Every record says what a model card states, which is not legal advice: whether you may use a generated file depends on where it goes.
+The code and documents here are under the [MIT License](LICENSE), and so are the gallery images. Tools and models keep their own licences (tables above; per file in `models.json`). Z-Image Turbo, Qwen3-4B, FLUX.2 [klein] 4B, MOSS-SoundEffect and Kokoro are Apache-2.0; TRELLIS.2, BiRefNet and Real-ESRGAN are MIT or BSD. **TRELLIS.2's `dinov3.gguf` is under Meta's [DINOv3 License](https://ai.meta.com/resources/models-and-libraries/dinov3-license)**, so it downloads only with `ACCEPT=dinov3`. Using it counts as accepting that licence: commercial use is allowed; where DINOv3 or its derivatives are distributed, "Built with DINOv3" must be shown prominently with a copy of the licence; military, weapons and espionage uses and use by parties under trade controls are forbidden. 3D models made by this factory record "Built with DINOv3" in their provenance and credits; the gallery's 3D models are built with DINOv3. Scoring uses SigLIP rather than OpenAI's CLIP, whose model card puts any deployed use out of scope. The 9B FLUX.2 klein models are non-commercial; this repository uses only the 4B one. Every record says what a model card states, which is not legal advice: whether you may use a generated file depends on where it goes.
 
 ## Credits
 
-Built on [stable-diffusion.cpp](https://github.com/leejet/stable-diffusion.cpp), [trellis.cpp](https://github.com/pwilkin/trellis.cpp), [moss-soundeffect-mlx](https://github.com/xocialize/moss-soundeffect-mlx), [MLX](https://github.com/ml-explore/mlx), [mlx-audio](https://github.com/Blaizzy/mlx-audio), [rembg](https://github.com/danielgatis/rembg), [ComfyUI](https://github.com/Comfy-Org/ComfyUI), [ComfyUI-GGUF](https://github.com/city96/ComfyUI-GGUF), the [MCP Python SDK](https://github.com/modelcontextprotocol/python-sdk), and the model authors: Tongyi-MAI (Z-Image), Black Forest Labs (FLUX.2), Microsoft (TRELLIS.2), Meta (DINOv3), the BiRefNet authors, Qwen, OpenMOSS, hexgrad (Kokoro), Xintao Wang (Real-ESRGAN), OpenAI (CLIP) and LAION (CLAP). Thanks also to the GGUF and MLX converters: leejet, unsloth, ilintar and mlx-community.
+Built on [stable-diffusion.cpp](https://github.com/leejet/stable-diffusion.cpp), [trellis.cpp](https://github.com/pwilkin/trellis.cpp), [moss-soundeffect-mlx](https://github.com/xocialize/moss-soundeffect-mlx), [MLX](https://github.com/ml-explore/mlx), [mlx-audio](https://github.com/Blaizzy/mlx-audio), [rembg](https://github.com/danielgatis/rembg), [ComfyUI](https://github.com/Comfy-Org/ComfyUI), [ComfyUI-GGUF](https://github.com/city96/ComfyUI-GGUF), the [MCP Python SDK](https://github.com/modelcontextprotocol/python-sdk), and the model authors: Tongyi-MAI (Z-Image), Black Forest Labs (FLUX.2), Microsoft (TRELLIS.2), Meta (DINOv3), the BiRefNet authors, Qwen, OpenMOSS, hexgrad (Kokoro), Xintao Wang (Real-ESRGAN), Google (SigLIP) and LAION (CLAP). Thanks also to the GGUF and MLX converters: leejet, unsloth, ilintar and mlx-community.

@@ -132,7 +132,7 @@ def make_texture(prompt: str, project_dir: str, name: str = "", size: int = 512,
 def image_to_3d(image_path: str, project_dir: str, name: str = "", res: str = "512", seed: int | None = None,
                 wait_seconds: int = 20) -> list:
     """Textured GLB from one image (TRELLIS.2). res 512 takes about 5 minutes, 1024 about 24. Returns a job_id;
-    wait with job_status. Read the DINOv3 licence note in the result before shipping the model."""
+    wait with job_status. TRELLIS.2 uses DINOv3: credit "Built with DINOv3" where the model is shipped."""
     args = {"src": image_path, "out": _out("model3d", project_dir, name, Path(image_path).stem), "res": res,
             "seed": seed}
     return _submit("model3d", {k: v for k, v in args.items() if v is not None}, wait_seconds)
