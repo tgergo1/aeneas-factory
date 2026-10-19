@@ -1,0 +1,30 @@
+{
+  "generated_by": "aeneas-factory diagram (d2)",
+  "created": "2026-10-19T11:57:57+02:00",
+  "seconds": 0.1,
+  "output": "pipeline.png",
+  "params": {
+    "kind": "d2"
+  },
+  "versions": {
+    "aeneas-factory": "0.3.0 (1e22bebd27844db802d0d022c66eab756fa9d7e2+modified)"
+  },
+  "command": [
+    "sandbox-exec",
+    "-p",
+    "(version 1)(allow default)(deny network*)(deny file-write*)(allow file-write* (subpath \"aeneas-factory/docs/gallery/explicit/tmpvu0zhov8\") (subpath \"/private/tmp\") (subpath \"/private/var/folders\") (literal \"/dev/null\") (literal \"/dev/stdout\") (literal \"/dev/stderr\") (literal \"/dev/tty\") (subpath \"~/Library/Caches\"))",
+    "/opt/homebrew/bin/d2",
+    "tmpvu0zhov8/diagram.d2",
+    "tmpvu0zhov8/out.png"
+  ],
+  "checks": {
+    "width": 2638,
+    "height": 588,
+    "spread": 27.3
+  },
+  "machine": "Darwin arm64",
+  "note": "Made with generative models on this machine. The model licences are as stated on their model cards; this is not legal advice. Credit and disclose as your project or store requires.",
+  "source": "direction: right\nprompt: \"a treasure chest\" {shape: page}\nimage: Z-Image Turbo\nmodel: TRELLIS.2\nprop: Blender clean-up\\n0.5 m, LODs\ncheck: checks {shape: diamond}\nprompt -> image -> check -> model -> prop\n",
+  "output_sha256": "829c2b29cd97d18c9a7447feb349db8e57838b077c444d447bf11edc70f31209",
+  "embedded_in_file": true
+}

@@ -12,7 +12,7 @@ from pathlib import Path
 from PIL import Image, PngImagePlugin
 
 from . import __version__, registry
-from .paths import ROOT, TOOL_REPOS, portable
+from .paths import HOME, ROOT, TOOL_REPOS, portable
 
 KEY = "aeneas:provenance"
 NOTE = ("Made with generative models on this machine. The model licences are as stated on their model cards; "
@@ -51,6 +51,13 @@ def model_entry(model_id):
     return e
 
 
+def _arg(c):
+    """A command argument for a record: paths made portable, and the home folder hidden inside
+    longer arguments too (a sandbox profile names the folders it allows)."""
+    s = portable(c)
+    return s.replace(ROOT.as_posix(), "aeneas-factory").replace(HOME, "~")
+
+
 def record(out, tool, model_ids, tools, cmd, started, prompt=None, negative_prompt=None, seed=None, params=None,
            inputs=None, checks=None, style=None, recipe=None):
     now = datetime.datetime.now().astimezone()
@@ -68,7 +75,7 @@ def record(out, tool, model_ids, tools, cmd, started, prompt=None, negative_prom
         "inputs": [{"file": portable(Path(p).resolve()), "sha256": registry.sha256(p)} for p in (inputs or [])],
         "models": [model_entry(i) for i in model_ids],
         "versions": versions(tools),
-        "command": [portable(c) for c in cmd] if cmd else None,
+        "command": [_arg(c) for c in cmd] if cmd else None,
         "checks": checks,
         "machine": f"{platform.system()} {platform.machine()}",
         "note": NOTE,

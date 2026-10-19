@@ -282,6 +282,10 @@ def serve(port=None, idle_exit=None):
 
 # ---------------------------------------------------------------- client
 
+class ServiceError(RuntimeError):
+    """The service refused or failed a request; the message is meant for the user."""
+
+
 class Client:
     def __init__(self, info):
         self.base = f"http://127.0.0.1:{info['port']}"
@@ -296,7 +300,7 @@ class Client:
             with urllib.request.urlopen(req, timeout=timeout) as r:
                 return json.loads(r.read())
         except urllib.error.HTTPError as e:
-            raise RuntimeError(json.loads(e.read() or b"{}").get("error", str(e)))
+            raise ServiceError(json.loads(e.read() or b"{}").get("error", str(e)))
 
 
 def running():

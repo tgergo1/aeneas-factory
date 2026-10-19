@@ -1,0 +1,3 @@
+#!/bin/sh
+# Short for: aen music
+exec "$(dirname "$0")/aen" music "$@"

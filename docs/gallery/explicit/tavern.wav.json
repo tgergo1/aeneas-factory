@@ -1,0 +1,61 @@
+{
+  "generated_by": "aeneas-factory music (abc, FluidSynth)",
+  "created": "2026-10-19T11:58:03+02:00",
+  "seconds": 1.0,
+  "output": "tavern.wav",
+  "params": {
+    "format": "abc",
+    "mastered": "loudness -18 LUFS, peak -1 dBTP",
+    "midi": "tavern.mid"
+  },
+  "models": [
+    {
+      "id": "generaluser-gs",
+      "name": "GeneralUser GS 2.0.3 (SoundFont)",
+      "upstream": "https://github.com/mrbumpy409/GeneralUser-GS",
+      "licence": "GeneralUser GS License v2.0",
+      "licence_allows_commercial_use": "the licence allows music made with it to be used without restriction, commercially too; its author cannot vouch for every sample's origin if the bank itself ships inside commercial software (not legal advice)",
+      "files": [
+        {
+          "file": "GeneralUser-GS.sf2",
+          "sha256": "9575028c7a1f589f5770fccc8cff2734566af40cd26ed836944e9a5152688cfe",
+          "url": "https://raw.githubusercontent.com/mrbumpy409/GeneralUser-GS/684543d5e5efaef08d02be50dcda8d552478fa60/GeneralUser-GS.sf2"
+        }
+      ]
+    }
+  ],
+  "versions": {
+    "aeneas-factory": "0.3.0 (1e22bebd27844db802d0d022c66eab756fa9d7e2+modified)"
+  },
+  "command": [
+    "sandbox-exec",
+    "-p",
+    "(version 1)(allow default)(deny network*)(deny file-write*)(allow file-write* (subpath \"aeneas-factory/docs/gallery/explicit/tmpm5ayazy1\") (subpath \"/private/tmp\") (subpath \"/private/var/folders\") (literal \"/dev/null\") (literal \"/dev/stdout\") (literal \"/dev/stderr\") (literal \"/dev/tty\") (subpath \"~/Library/Caches\"))",
+    "/opt/homebrew/bin/fluidsynth",
+    "-ni",
+    "-q",
+    "-F",
+    "tmpm5ayazy1/raw.wav",
+    "-r",
+    "48000",
+    "-g",
+    "0.8",
+    "aeneas-factory/models/generaluser-gs/GeneralUser-GS.sf2",
+    "tmpm5ayazy1/in.mid"
+  ],
+  "checks": {
+    "seconds": 20.72,
+    "rms_dbfs": -21.1,
+    "peak_dbfs": -12.8,
+    "sample_rate": 48000,
+    "channels": 2
+  },
+  "machine": "Darwin arm64",
+  "note": "Made with generative models on this machine. The model licences are as stated on their model cards; this is not legal advice. Credit and disclose as your project or store requires.",
+  "source": "X:1\nT:The Brass Lock\nM:6/8\nL:1/8\nQ:3/8=104\n%%MIDI program 73\nK:D\n|:A|d2f a2f|g2e c2A|d2f afd|e3- e2A|\nd2f a2f|g2b a2g|fed edc|d3- d2:|\n",
+  "policy": {
+    "policy": "none (no .aeneas/policy.toml in the project)"
+  },
+  "output_sha256": "0fa5faa257bc3b68a1c615a665a9d79c1a36ef98d238273e88d9645ea01546d0",
+  "embedded_in_file": true
+}

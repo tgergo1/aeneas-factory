@@ -298,6 +298,26 @@ def cmd_service(a):
                   f"  {j['message']}")
 
 
+def _src(a):
+    return Path(a.source).read_text() if Path(a.source).is_file() else a.source
+
+
+def cmd_diagram(a):
+    _print(_run_op(a, "diagram", dict(source=_src(a), kind=a.kind, out=_p(a.out))))
+
+
+def cmd_svg(a):
+    _print(_run_op(a, "svg", dict(source=_src(a), out=_p(a.out), width=a.width)))
+
+
+def cmd_music(a):
+    _print(_run_op(a, "music", dict(source=_src(a), format=a.format, out=_p(a.out), master=not a.raw)))
+
+
+def cmd_dialogue(a):
+    _print(_run_op(a, "dialogue", dict(source=_src(a), kind=a.kind, out=_p(a.out))))
+
+
 def cmd_tools(a):
     from . import explicit
     if a.action == "list":
@@ -386,6 +406,26 @@ def main(argv=None):
                                                                    help="accept a licence, e.g. --accept dinov3")
     p.set_defaults(func=cmd_models)
 
+    p = sub.add_parser("diagram", help="diagram or chart from text: graphviz, d2, mermaid, vega-lite (PNG, or SVG by extension)")
+    p.add_argument("source", help="the text, or a file holding it"); p.add_argument("-o", "--out", required=True)
+    p.add_argument("--kind", choices=["graphviz", "d2", "mermaid", "vega-lite"], default="graphviz")
+    p.add_argument("--local", action="store_true"); p.set_defaults(func=cmd_diagram)
+
+    p = sub.add_parser("svg", help="render an SVG (text or file) to PNG")
+    p.add_argument("source"); p.add_argument("-o", "--out", required=True); p.add_argument("--width", type=int)
+    p.add_argument("--local", action="store_true"); p.set_defaults(func=cmd_svg)
+
+    p = sub.add_parser("music", help="music from ABC notation or a JSON note list, General MIDI instruments, mastered")
+    p.add_argument("source", help="ABC text or a .abc/.json file"); p.add_argument("-o", "--out", required=True)
+    p.add_argument("--format", choices=["abc", "notes"], default="abc")
+    p.add_argument("--raw", action="store_true", help="no loudness normalisation")
+    p.add_argument("--local", action="store_true"); p.set_defaults(func=cmd_music)
+
+    p = sub.add_parser("dialogue", help="compile branching dialogue: ink (JSON) or yarn (.yarnc)")
+    p.add_argument("source"); p.add_argument("-o", "--out", required=True)
+    p.add_argument("--kind", choices=["ink", "yarn"], default="ink")
+    p.add_argument("--local", action="store_true"); p.set_defaults(func=cmd_dialogue)
+
     p = sub.add_parser("tools", help="explicit tools (code in, asset out): list, check [NAME...]")
     p.add_argument("action", choices=["list", "check"]); p.add_argument("names", nargs="*"); p.add_argument("--keep")
     p.set_defaults(func=cmd_tools)
@@ -429,7 +469,7 @@ def main(argv=None):
     a.extra = extra
     try:
         a.func(a)
-    except (ops.OpError, registry.RegistryError, policy.PolicyError, styles.StyleError, recipes.RecipeError) as e:
+    except (ops.OpError, registry.RegistryError, policy.PolicyError, styles.StyleError, recipes.RecipeError, service.ServiceError) as e:
         sys.exit(f"error: {e}")
     except Exception as e:
         from .checks import CheckFailed

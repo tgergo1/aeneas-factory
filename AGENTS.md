@@ -43,6 +43,8 @@ When the result must be exact, editable or consistent (icons, UI, diagrams, pixe
 Over MCP (text in, sandboxed, checked, source kept in the provenance):
 - `render_diagram` (graphviz, d2, mermaid, vega-lite), `render_svg` (any SVG you write), `compose_music` (ABC notation, or a JSON note list, played with General MIDI instruments and mastered), `compile_dialogue` (Ink or Yarn Spinner), `explicit_tools` (the full list).
 
+The same four from a shell: `aen diagram SOURCE --kind d2 -o out.png`, `aen svg SOURCE -o out.png`, `aen music SOURCE -o out.wav` (`--format notes` for JSON), `aen dialogue SOURCE -o story.json` (`--kind yarn`); SOURCE is the text or a file.
+
 From a shell, `aen tool NAME [--sandbox OUTDIR] -- args` runs any of them with the right environment. Use `--sandbox OUTDIR` for anything that runs code (Python, Csound, SuperCollider, OpenSCAD): no network, writes only inside OUTDIR.
 
 | Need | How |

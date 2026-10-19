@@ -1,11 +1,11 @@
 # Aeneas Factory
 
-**Local generation of images, textures, 3D models, sound effects and speech on a Mac, built so that AI agents can use it safely and every result can be trusted.** Open models, pinned and checksummed. One shared service with a job queue. An MCP server for Claude Code and Codex. Automatic checks so a blank image is never reported as a success. Provenance written into every file. A licence policy per project. Recipes that turn a request into a finished asset. A searchable library of everything made or downloaded.
+**Local generation of images, textures, 3D models, sound effects and speech on a Mac, plus 29 explicit tools that turn code and text into exact assets (music, diagrams, icons, pixel art, CAD parts, levels, dialogue), built so that AI agents can use it safely and every result can be trusted.** Open models, pinned and checksummed. One shared service with a job queue. An MCP server for Claude Code and Codex. Automatic checks so a blank image is never reported as a success. Provenance written into every file. A licence policy per project. Recipes that turn a request into a finished asset. A searchable library of everything made or downloaded.
 
 **Built with DINOv3**: the 3D generator (TRELLIS.2) uses Meta's DINOv3 image features under the [DINOv3 License](https://ai.meta.com/resources/models-and-libraries/dinov3-license); see [Licences](#licences).
 
 <p align="center">
-  <img src="docs/factory.svg" alt="Diagram: agents use the MCP server, scripts the aen command line, people ComfyUI and Blender. All work goes through one factory service: licence policy, engine, checks, ranked candidates, provenance, asset library. Engines: stable-diffusion.cpp (Z-Image Turbo, FLUX.2 klein), trellis.cpp (TRELLIS.2), MLX (MOSS-SoundEffect, Kokoro), Real-ESRGAN, BiRefNet, ComfyUI, Blender, ffmpeg." width="100%">
+  <img src="docs/factory.svg" alt="Diagram: agents use the MCP server, scripts the aen command line, people ComfyUI and Blender. All work goes through one factory service: licence policy, engine, checks, ranked candidates, provenance, asset library. Engines: stable-diffusion.cpp (Z-Image Turbo, FLUX.2 klein), trellis.cpp (TRELLIS.2), MLX (MOSS-SoundEffect, Kokoro), Real-ESRGAN, BiRefNet, ComfyUI, Blender, ffmpeg. Explicit tools: diagrams, SVG, music, dialogue and 25 more, sandboxed." width="100%">
 </p>
 
 ## What it does
@@ -13,9 +13,10 @@
 | | |
 |---|---|
 | **Generate** | Images from text (Z-Image Turbo, FLUX.2 [klein] 4B), image editing from references, seamless textures with PBR maps, textured 3D models from one image (TRELLIS.2), sound effects (MOSS-SoundEffect), speech (Kokoro), 4x upscaling (Real-ESRGAN), background removal (BiRefNet) |
+| **Compose** | 29 explicit tools, no model weights: diagrams and charts (Graphviz, D2, Mermaid, Vega-Lite), SVG icons and UI art, pixel art (ImageMagick), music from ABC notation or note lists played with General MIDI instruments, synthesis (Csound, SuperCollider, Faust), CAD parts (OpenSCAD, build123d), mesh work (xatlas, PyMeshLab, gltfpack), levels (Tiled, Godot) and branching dialogue (Ink, Yarn Spinner). Code that runs is sandboxed: no network, writes only to its output folder |
 | **Check** | Every output is checked before it counts: blank or flat images, visible seams in tiles, silent audio, empty or flat meshes. A failure is an error, never a result |
 | **Choose** | `--candidates N` makes several, drops the failures, ranks the rest by how well they match the prompt (SigLIP for images, CLAP for sound) and keeps the best, recording all of them |
-| **Record** | Provenance inside the file (PNG text, glTF `extras`, WAV `INFO`) and beside it (`<file>.json`): the models with every file's SHA-256, the factory and tool versions, prompt, seed, settings, checks and the licence policy that applied |
+| **Record** | Provenance inside the file (PNG text, glTF `extras`, WAV `INFO`) and beside it (`<file>.json`): the models with every file's SHA-256, the factory and tool versions, prompt, seed, settings, checks and the licence policy that applied. For explicit tools the record keeps the whole source text, so the asset can be edited and made again exactly |
 | **Govern** | A per-project licence policy (`.aeneas/policy.toml`) decides which models and downloaded assets may be used. Models whose licence asks for agreement (DINOv3) download only after you accept it |
 | **Assemble** | Recipes run several steps in a row: `prop` (concept → 3D → Blender clean-up to real size with LODs), `texture` (tile → PBR set), `sfx` (takes → trimmed, -18 LUFS), `sprite` (art → cut-out) |
 | **Remember** | An asset library indexes everything generated and every downloaded pack you import, searchable by words and, for images, by meaning; `aen library credits` writes a project's credits page |
@@ -36,6 +37,19 @@ Made by this repository ([`scripts/make_gallery.sh`](scripts/make_gallery.sh), f
 <img src="docs/gallery/chest-creak-wave.png" width="100%" alt="Waveform of the generated chest sound">
 
 **Sound effect**, MOSS-SoundEffect: [`chest-creak.wav`](docs/gallery/chest-creak.wav) · `aen sfx "an old wooden chest lid creaks open slowly, then thuds shut" -o chest-creak.wav`
+
+### Explicit tools: written, not generated
+
+No models: each one is rendered from a short source kept beside it in [`docs/gallery/explicit`](docs/gallery/explicit), and its record holds that source.
+
+| | | |
+|---|---|---|
+| <img src="docs/gallery/explicit/chest-pixel.png" width="100%" alt="The treasure chest as 48-pixel pixel art"> | <img src="docs/gallery/explicit/potion.png" width="100%" alt="A purple potion flask icon drawn as SVG"> | <img src="docs/gallery/explicit/pipeline.png" width="100%" alt="A diagram of the prop pipeline drawn with D2"> |
+| **Pixel art**, ImageMagick: the chest above cut out, cut to 48 px and 12 colours, enlarged without smoothing<br>`aen tool magick -- chest.png … -colors 12 -scale 800% chest-pixel.png` | **Icon** from SVG, resvg: [`potion.svg`](docs/gallery/explicit/potion.svg)<br>`aen svg potion.svg --width 256 -o potion.png` | **Diagram**, D2: [`pipeline.d2`](docs/gallery/explicit/pipeline.d2)<br>`aen diagram pipeline.d2 --kind d2 -o pipeline.png` |
+
+<img src="docs/gallery/explicit/tavern_wave.png" width="100%" alt="Waveform of the tavern tune">
+
+**Music** from ABC notation, a jig on a flute, FluidSynth with GeneralUser GS, mastered to -18 LUFS: [`tavern.abc`](docs/gallery/explicit/tavern.abc) → [`tavern.wav`](docs/gallery/explicit/tavern.wav) and [`tavern.mid`](docs/gallery/explicit/tavern.mid) · `aen music tavern.abc -o tavern.wav`
 
 ### Recipes: finished assets, not raw generations
 
@@ -63,8 +77,11 @@ Everything (all four core models, 40.5 GB; read the [DINOv3 licence](https://ai.
 
 ```bash
 make install ACCEPT=dinov3
-make extras models-extras                 # optional: ranking, background removal, speech, upscaling (2.1 GB)
+make extras models-extras                 # optional: ranking, background removal, speech, upscaling, music (2.1 GB)
+make explicit                             # optional: the 29 explicit tools (Homebrew, Python, Node, .NET; no models)
 ```
+
+The explicit tools need none of the models; `make factory explicit` and `aen models download generaluser-gs` (32 MB, for music) are enough for them alone.
 
 Then:
 
@@ -75,6 +92,9 @@ aen texture "weathered oak planks" -o oak.png
 aen recipe prop --out-dir props subject="a wooden water bucket with iron hoops" size_m=0.4
 aen sfx "rain on a tin roof, distant thunder" --seconds 10 -o rain.wav
 aen speech "Welcome to the village." -o welcome.wav --voice bm_george
+aen music docs/gallery/explicit/tavern.abc -o tavern.wav
+aen diagram 'digraph { idea -> sketch -> asset }' -o flow.png
+aen tools check                           # prove every explicit tool works
 ```
 
 ## Using it from an AI agent
@@ -86,16 +106,20 @@ claude mcp add --scope user aeneas -- "$PWD/bin/aen" mcp
 codex mcp add aeneas -- "$PWD/bin/aen" mcp
 ```
 
-Tools: `capabilities`, `generate_image`, `edit_image`, `make_texture`, `image_to_3d`, `generate_sound`, `generate_speech`, `upscale_image`, `remove_background`, `run_recipe`, `job_status`, `cancel_job`, `list_jobs`, `search_assets`, `get_provenance`, `project_credits`.
+21 tools:
 
-- Every finished result comes back with a **thumbnail the agent can look at**: the image, a 2x2 tile preview, a render of the 3D model, or a waveform. Candidates come back as a contact sheet.
+- **Generate**: `generate_image`, `edit_image`, `make_texture`, `image_to_3d`, `generate_sound`, `generate_speech`, `upscale_image`, `remove_background`, `run_recipe`
+- **Compose** from text the agent writes: `render_diagram` (Graphviz, D2, Mermaid, Vega-Lite), `render_svg`, `compose_music` (ABC notation or a JSON note list with General MIDI instruments), `compile_dialogue` (Ink or Yarn Spinner), `explicit_tools` (what else is installed and how to call it)
+- **Jobs and records**: `capabilities`, `job_status`, `cancel_job`, `list_jobs`, `search_assets`, `get_provenance`, `project_credits`
+
+- Every finished result comes back with a **thumbnail the agent can look at**: the image, a 2x2 tile preview, a render of the 3D model, a rendered diagram or icon, or a waveform. Candidates come back as a contact sheet.
 - Long work (3D takes minutes) returns a **job id at once**; `job_status` waits for it.
-- Outputs go to `<project_dir>/generated/`. The server **never runs code it is sent, never downloads models, and writes only under your home folder, outside the factory**.
+- Outputs go to `<project_dir>/generated/`. The server **never runs code it is sent, never downloads models, and writes only under your home folder, outside the factory**. The compose tools take notation and markup (DOT, SVG, ABC, Ink), not programs, and run sandboxed.
 - [`AGENTS.md`](AGENTS.md) tells agents how to use all this, plus Blender, GIMP and free asset libraries, with the licence rules. `scripts/mcp_smoke.py` tests the whole path the way an agent uses it.
 
 ## The command line
 
-`aen <command> --help` for every option. `ai-image`, `ai-3d`, `ai-sfx`, … are short for `aen image`, `aen 3d`, `aen sfx`, … When the factory service is running, commands queue there (nothing fights over the GPU); `--local` runs them in the calling process.
+`aen <command> --help` for every option. `ai-image`, `ai-3d`, `ai-sfx`, `ai-music`, `ai-diagram`, … are short for `aen image`, `aen 3d`, `aen sfx`, `aen music`, `aen diagram`, … When the factory service is running, commands queue there (nothing fights over the GPU); `--local` runs them in the calling process.
 
 | Command | Does |
 |---|---|
@@ -113,11 +137,15 @@ Tools: `capabilities`, `generate_image`, `edit_image`, `make_texture`, `image_to
 | `aen policy init / show` · `aen style list / show` | Licence policy · style packs |
 | `aen service start / status / stop / jobs / autostart on\|off` · `aen mcp` | The factory service (and starting it at login) · the MCP server on stdio |
 | `aen check` | Health check: tools, every model file, and a real job through each generator |
-| `aen tools list / check` · `aen tool NAME -- args` | The explicit tools: list, prove each works, run one |
+| `aen diagram SOURCE -o out.png` | Diagram or chart from text or a file: `--kind graphviz` (default), `d2`, `mermaid`, `vega-lite`; SVG output if `-o` ends in `.svg` |
+| `aen svg SOURCE -o out.png` | Render SVG to PNG (`--width`) |
+| `aen music SOURCE -o out.wav` | Music from ABC notation, or `--format notes` for a JSON note list; writes the `.mid` too, mastered unless `--raw` |
+| `aen dialogue SOURCE -o story.json` | Compile Ink to JSON (inkjs, ink-unity), or `--kind yarn` for Yarn Spinner |
+| `aen tools list / check` · `aen tool NAME [--sandbox DIR] -- args` | The explicit tools: list, prove each works, run any one with the right environment |
 
 ## Explicit tools: code and text in, assets out
 
-Beyond the models, the factory installs 29 tools that turn code or text into exact, editable assets, with no model weights: `make explicit` (Homebrew, a locked Python environment, locked Node packages, Yarn Spinner, and the GeneralUser GS SoundFont). `aen tools check` makes something real with each and checks it.
+Generation is the wrong tool when the result must be exact, editable or the same every time: an icon in a UI, a chart, a tune that loops, a part with real dimensions, a level, a dialogue tree. For those the factory installs 29 tools that turn code or text into assets, with no model weights: `make explicit` (Homebrew packages from the [`Brewfile`](Brewfile), a locked Python environment, locked Node packages, Yarn Spinner, and the GeneralUser GS SoundFont). `aen tools check` makes something real with each one and checks it.
 
 | Area | Tools |
 |---|---|
@@ -130,7 +158,20 @@ Beyond the models, the factory installs 29 tools that turn code or text into exa
 | Physics and motion | pymunk, MuJoCo, Manim |
 | Levels and dialogue | Tiled and tmxrasterizer, Godot (headless), Ink (inkjs), Yarn Spinner |
 
-Agents get four of them as MCP tools that take text (`render_diagram`, `render_svg`, `compose_music`, `compile_dialogue`), sandboxed and recorded with their source; the rest run as `aen tool NAME [--sandbox DIR] -- args`. FontForge was left out because Homebrew disabled it (it fails macOS Gatekeeper); fontTools covers fonts.
+Four of them have their own commands and MCP tools that take text (`aen diagram`, `aen svg`, `aen music`, `aen dialogue`; `render_diagram`, `render_svg`, `compose_music`, `compile_dialogue`): sandboxed, checked like every other output, and recorded with their source. Every tool runs as `aen tool NAME -- args` with the environment it needs (Homebrew paths, .NET, the SoundFont):
+
+```bash
+aen tools list                                           # what is installed, by area, with licences
+aen tool magick -- in.png -filter point -resize 64x64 -dither None -colors 16 sprite.png
+aen tool openscad --sandbox out -- -o out/gear.stl gear.scad
+aen tool python --sandbox out -- make_level.py           # trimesh, build123d, pymunk, music21, … are importable
+aen tool gltfpack -- -i model.glb -o model-small.glb -cc
+aen tool blender -- -b --python rig.py                   # Rigify, BVH retargeting, QuadriFlow
+```
+
+`--sandbox DIR` runs the tool under macOS `sandbox-exec`: no network, and writes only inside `DIR` (and the temporary and cache folders). Use it for anything that executes code. [`AGENTS.md`](AGENTS.md) has a table of which tool to reach for, need by need.
+
+FontForge was left out because Homebrew disabled it (it fails macOS Gatekeeper); fontTools covers fonts.
 
 ## Recipes, styles, policy and the library
 
@@ -184,12 +225,13 @@ The four core models total **40.5 GB**; the optional ones **2.1 GB**. Every file
 | [mlx-audio](https://github.com/Blaizzy/mlx-audio) | `requirements/speech.txt` | MIT | speech |
 | [rembg](https://github.com/danielgatis/rembg) | `requirements/matte.txt` | MIT | background removal |
 | [ComfyUI](https://github.com/Comfy-Org/ComfyUI), [ComfyUI-GGUF](https://github.com/city96/ComfyUI-GGUF) | v0.40.0, `6ea2651` | GPL-3.0, Apache-2.0 | optional engine and UI |
+| The explicit tools (`make explicit`) | [`Brewfile`](Brewfile), `requirements/explicit.txt`, [`requirements/explicit-node`](requirements/explicit-node), Yarn Spinner 3.2.2 | each its own (`aen tools list` shows them): mostly MIT, BSD, Apache-2.0, LGPL and GPL; none of them puts a licence on what you make | diagrams, SVG, music, synthesis, CAD, mesh work, levels, dialogue |
 
-Every Python environment is locked with exact versions and hashes in [`requirements/`](requirements).
+Every Python environment is locked with exact versions and hashes in [`requirements/`](requirements), and the Node packages in a lockfile.
 
 ## Requirements and timings
 
-A Mac with Apple Silicon (tested: M5 Pro, 64 GB, macOS 27). Xcode Command Line Tools, Homebrew `cmake`, `uv`, `git`; `ffmpeg` and Blender for sound mastering, 3D previews and clean-up. `make prereqs` checks.
+A Mac with Apple Silicon (tested: M5 Pro, 64 GB, macOS 27). Xcode Command Line Tools, Homebrew `cmake`, `uv`, `git`; `ffmpeg` and Blender for sound mastering, 3D previews and clean-up. `make prereqs` checks. The explicit tools take about 5 GB: Homebrew packages and apps (including Node and .NET, which `make explicit` installs) and 2.6 GB of Python and Node environments in `tools/explicit`. They use Blender and Godot from `/Applications` when they are there.
 
 Measured on the M5 Pro:
 
@@ -202,6 +244,7 @@ Measured on the M5 Pro:
 | Sound effect, 2 s at 10 steps / 5 s at 100 steps | 19 s / about 2 minutes |
 | Speech, one sentence | about 8 s |
 | Building the three core tools from a clean clone | 6.5 minutes |
+| Diagram (D2), SVG icon, or a 20 s tune from ABC, mastered | 1 to 2.5 s each, mostly starting Python |
 
 The sound model needs about 14 GB of GPU memory; the service unloads it after five idle minutes.
 
@@ -222,12 +265,12 @@ aen service status           # pid, idle time, which models are loaded
 
 ## Security
 
-The service listens on 127.0.0.1 only. Every request needs the token in `~/.aeneas/service.json`, which only you can read. Requests with a browser `Origin` header, or a `Host` other than localhost, are refused, so web pages cannot drive it. It runs only the factory's own operations and recipes, reads inputs and writes outputs only under your home folder and never inside the factory, and never downloads anything. Model downloads go through `aen models download`, which checks every file's SHA-256 against [`models.json`](models.json). One scoring model (CLAP) exists only as a PyTorch pickle; it is pinned by SHA-256 and loaded with weights-only loading.
+The service listens on 127.0.0.1 only. Every request needs the token in `~/.aeneas/service.json`, which only you can read. Requests with a browser `Origin` header, or a `Host` other than localhost, are refused, so web pages cannot drive it. It runs only the factory's own operations and recipes, reads inputs and writes outputs only under your home folder and never inside the factory, and never downloads anything. Model downloads go through `aen models download`, which checks every file's SHA-256 against [`models.json`](models.json). The explicit tools that take text (diagrams, SVG, music, dialogue) run under `sandbox-exec` with no network and writes only to a temporary folder beside the output; Mermaid is the exception, since headless Chrome sandboxes itself and cannot run inside another sandbox. `aen tool` runs whatever you give it, as you, so pass `--sandbox DIR` for code you did not write. One scoring model (CLAP) exists only as a PyTorch pickle; it is pinned by SHA-256 and loaded with weights-only loading.
 
 ## Development
 
 ```bash
-make test           # 38 tests, no models or GPU needed
+make test           # 39 tests, no models or GPU needed
 python scripts/gen_docs.py --check    # the docs agree with models.json
 .venv/bin/python scripts/mcp_smoke.py ~/some/project    # the MCP path end to end
 ```
@@ -240,12 +283,15 @@ CI ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) runs the tests and t
 - **Out of memory**: use `--size 768` or less for images and `--res 512` for 3D; the sound model alone takes about 14 GB.
 - **A download stopped**: run the same command again; it resumes and checks each file.
 - **Something broke after a macOS or Homebrew update**: `aen check --quick` shows what, `make clean-tools tools` rebuilds.
+- **An explicit tool fails**: `aen tools check NAME` shows what is wrong; `make explicit` installs anything missing.
 - Each output's `.log` holds the tool's own output.
 
 ## Licences
 
-The code and documents here are under the [MIT License](LICENSE), and so are the gallery images. Tools and models keep their own licences (tables above; per file in `models.json`). Z-Image Turbo, Qwen3-4B, FLUX.2 [klein] 4B, MOSS-SoundEffect and Kokoro are Apache-2.0; TRELLIS.2, BiRefNet and Real-ESRGAN are MIT or BSD. **TRELLIS.2's `dinov3.gguf` is under Meta's [DINOv3 License](https://ai.meta.com/resources/models-and-libraries/dinov3-license)**, so it downloads only with `ACCEPT=dinov3`. Using it counts as accepting that licence: commercial use is allowed; where DINOv3 or its derivatives are distributed, "Built with DINOv3" must be shown prominently with a copy of the licence; military, weapons and espionage uses and use by parties under trade controls are forbidden. 3D models made by this factory record "Built with DINOv3" in their provenance and credits; the gallery's 3D models are built with DINOv3. Scoring uses SigLIP rather than OpenAI's CLIP, whose model card puts any deployed use out of scope. The 9B FLUX.2 klein models are non-commercial; this repository uses only the 4B one. Every record says what a model card states, which is not legal advice: whether you may use a generated file depends on where it goes.
+The code and documents here are under the [MIT License](LICENSE), and so are the gallery images. Tools and models keep their own licences (tables above; per file in `models.json`). Z-Image Turbo, Qwen3-4B, FLUX.2 [klein] 4B, MOSS-SoundEffect and Kokoro are Apache-2.0; TRELLIS.2, BiRefNet and Real-ESRGAN are MIT or BSD. **TRELLIS.2's `dinov3.gguf` is under Meta's [DINOv3 License](https://ai.meta.com/resources/models-and-libraries/dinov3-license)**, so it downloads only with `ACCEPT=dinov3`. Using it counts as accepting that licence: commercial use is allowed; where DINOv3 or its derivatives are distributed, "Built with DINOv3" must be shown prominently with a copy of the licence; military, weapons and espionage uses and use by parties under trade controls are forbidden. 3D models made by this factory record "Built with DINOv3" in their provenance and credits; the gallery's 3D models are built with DINOv3. Scoring uses SigLIP rather than OpenAI's CLIP, whose model card puts any deployed use out of scope. Music rendered with the GeneralUser GS SoundFont may be used freely, commercially too (its licence, v2.0, covers the music made with it). The explicit tools keep their own licences, several of them GPL or LGPL; that applies to the tools, not to the files you make with them. The 9B FLUX.2 klein models are non-commercial; this repository uses only the 4B one. Every record says what a model card states, which is not legal advice: whether you may use a generated file depends on where it goes.
 
 ## Credits
 
 Built on [stable-diffusion.cpp](https://github.com/leejet/stable-diffusion.cpp), [trellis.cpp](https://github.com/pwilkin/trellis.cpp), [moss-soundeffect-mlx](https://github.com/xocialize/moss-soundeffect-mlx), [MLX](https://github.com/ml-explore/mlx), [mlx-audio](https://github.com/Blaizzy/mlx-audio), [rembg](https://github.com/danielgatis/rembg), [ComfyUI](https://github.com/Comfy-Org/ComfyUI), [ComfyUI-GGUF](https://github.com/city96/ComfyUI-GGUF), the [MCP Python SDK](https://github.com/modelcontextprotocol/python-sdk), and the model authors: Tongyi-MAI (Z-Image), Black Forest Labs (FLUX.2), Microsoft (TRELLIS.2), Meta (DINOv3), the BiRefNet authors, Qwen, OpenMOSS, hexgrad (Kokoro), Xintao Wang (Real-ESRGAN), Google (SigLIP) and LAION (CLAP). Thanks also to the GGUF and MLX converters: leejet, unsloth, ilintar and mlx-community.
+
+The explicit tools: [ImageMagick](https://imagemagick.org/), [resvg](https://github.com/linebender/resvg), [librsvg](https://gitlab.gnome.org/GNOME/librsvg), [OpenCV](https://opencv.org/), [vtracer](https://github.com/visioncortex/vtracer), [coloraide](https://github.com/facelessuser/coloraide), [fontTools](https://github.com/fonttools/fonttools), [Graphviz](https://graphviz.org/), [D2](https://d2lang.com/), [Mermaid](https://mermaid.js.org/), [Vega-Lite](https://vega.github.io/vega-lite/), [abcMIDI](https://github.com/sshlien/abcmidi), [music21](https://github.com/cuthbertLab/music21), [pretty_midi](https://github.com/craffel/pretty-midi), [mido](https://github.com/mido/mido), [LilyPond](https://lilypond.org/), [FluidSynth](https://www.fluidsynth.org/) with [GeneralUser GS](https://github.com/mrbumpy409/GeneralUser-GS) by S. Christian Collins, [Csound](https://csound.com/), [SuperCollider](https://supercollider.github.io/), [Faust](https://faust.grame.fr/), [SoX](https://sourceforge.net/projects/sox/), [pedalboard](https://github.com/spotify/pedalboard), [moderngl](https://github.com/moderngl/moderngl), [opensimplex](https://github.com/lmas/opensimplex), [Taichi](https://www.taichi-lang.org/), [OpenSCAD](https://openscad.org/), [build123d](https://github.com/gumyr/build123d), [trimesh](https://github.com/mikedh/trimesh), [xatlas](https://github.com/jpcy/xatlas), [PyMeshLab](https://github.com/cnr-isti-vclab/PyMeshLab), [meshoptimizer/gltfpack](https://github.com/zeux/meshoptimizer), [glTF-Validator](https://github.com/KhronosGroup/glTF-Validator), [Basis Universal](https://github.com/BinomialLLC/basis_universal), [COLMAP](https://colmap.github.io/), [Blender](https://www.blender.org/), [pymunk](https://www.pymunk.org/), [MuJoCo](https://mujoco.org/), [Manim](https://www.manim.community/), [Tiled](https://www.mapeditor.org/), [Godot](https://godotengine.org/), [Ink](https://www.inklestudios.com/ink/) and [inkjs](https://github.com/y-lohse/inkjs) (inkle), and [Yarn Spinner](https://www.yarnspinner.dev/).

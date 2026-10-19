@@ -50,3 +50,12 @@ def test_tools_are_found_with_launchds_minimal_path():
     if explicit.locate("dot") is None:
         pytest.skip("graphviz not installed")
     assert out.stdout.split() == ["True", "True"], out.stderr
+
+
+def test_sandboxed_commands_do_not_name_the_user_in_records():
+    from aeneas import provenance
+    from aeneas.paths import HOME
+    cmd = ["sandbox-exec", "-p", explicit.sandbox_profile(HOME + "/somewhere/out"), "dot", HOME + "/x.dot"]
+    recorded = [provenance._arg(c) for c in cmd]
+    assert not any(HOME in c for c in recorded), recorded
+    assert "~/somewhere/out" in recorded[2] and recorded[-1].endswith("x.dot")

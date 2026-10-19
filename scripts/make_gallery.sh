@@ -34,5 +34,16 @@ B=../../bin
 [ -f chest-creak-wave.png ] || ffmpeg -loglevel error -y -i chest-creak.wav \
   -filter_complex "showwavespic=s=1600x280:colors=0x0d9488:split_channels=0:scale=sqrt:draw=full" -frames:v 1 chest-creak-wave.png
 
-rm -f ./*.log
+# 6. Explicit tools (make explicit): the outputs are rendered from the sources in explicit/, no models
+cd explicit
+[ -f pipeline.png ] || ../$B/aen diagram pipeline.d2 --kind d2 --local -o pipeline.png >/dev/null
+[ -f potion.png ] || ../$B/aen svg potion.svg --width 256 --local -o potion.png >/dev/null
+[ -f tavern.wav ] || ../$B/aen music tavern.abc --local -o tavern.wav >/dev/null
+# Pixel art: the chest of step 1 cut out, cut down to 48 px and 12 colours, then enlarged without smoothing
+[ -f chest-pixel.png ] || ../$B/aen tool magick -- ../chest.png -fuzz 8% -fill none -draw "color 0,0 floodfill" \
+  -filter Triangle -resize 48x48 -channel A -threshold 50% +channel -dither None -colors 12 \
+  -filter point -scale 800% chest-pixel.png
+cd ..
+
+rm -f ./*.log explicit/*.log
 echo "gallery remade in $G"
