@@ -94,3 +94,14 @@ def test_candidate_records_hold_no_absolute_paths(tmp_path, noise_png):
     assert rec["selection"]["chosen_seed"] == 11
     assert all(c["path"].startswith("/") for c in listing)  # the caller still gets usable paths
     assert all("path" not in c and "file" in c for c in rec["selection"]["all"])  # the record keeps only portable names
+
+
+def test_records_never_name_the_user_when_run_from_the_root_folder(monkeypatch):
+    import os
+    from aeneas import paths, provenance
+    monkeypatch.chdir("/")  # where a service started at login runs
+    target = os.path.join(paths.HOME, "Work", "game", "art", "door.png")
+    assert paths.portable(target) == "~/Work/game/art/door.png"
+    assert provenance._arg(target) == "~/Work/game/art/door.png"
+    assert paths.portable("-Tpng") == "-Tpng"
+    assert paths.portable(str(paths.ROOT / "models" / "x.gguf")) == "aeneas-factory/models/x.gguf"

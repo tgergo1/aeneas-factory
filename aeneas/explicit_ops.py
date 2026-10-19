@@ -156,7 +156,9 @@ def dialogue(source, out, kind="ink", ctx=None):
         if not made or not made.exists() or made.stat().st_size < 20:
             raise checks.CheckFailed("the dialogue compiled to nothing")
         shutil.move(str(made), out)
-    (out.with_suffix(".ink" if kind == "ink" else ".yarn")).write_text(source)
+    src_copy = out.with_suffix(".ink" if kind == "ink" else ".yarn")
+    if not src_copy.exists() or src_copy.read_text() != source:  # never touch an unchanged source in an editor
+        src_copy.write_text(source)
     rec = _record(out, f"dialogue ({kind})", source, cmd, started, {"kind": kind}, found={"bytes": out.stat().st_size})
     side = out.with_name(out.name + ".json")
     side.write_text(json.dumps(dict(rec, output_sha256=provenance.registry.sha256(out)), indent=2) + "\n")

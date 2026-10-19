@@ -1,0 +1,394 @@
+{
+  "name": "aeneas-factory",
+  "displayName": "Aeneas Factory",
+  "description": "Needs Aeneas Factory 0.4 or later on an Apple Silicon Mac. Generate, preview and trace images, textures, 3D models, sound, music, diagrams and dialogue in the editor, through the local factory service.",
+  "version": "0.1.0",
+  "publisher": "aeneas-factory",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tgergo1/aeneas-factory.git",
+    "directory": "editors/vscode"
+  },
+  "engines": {
+    "vscode": "^1.95.0"
+  },
+  "categories": [
+    "Visualization",
+    "Other"
+  ],
+  "keywords": [
+    "assets",
+    "game development",
+    "glTF",
+    "provenance",
+    "generative"
+  ],
+  "icon": "media/icon.png",
+  "main": "./dist/extension.js",
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "contributes": {
+    "configuration": {
+      "title": "Aeneas Factory",
+      "properties": {
+        "aeneas.factoryPath": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "Folder of the Aeneas Factory checkout (holds `bin/aen`). Empty: taken from the running service, then from `aen` on the `PATH`."
+        },
+        "aeneas.renderOnSave": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "Render diagrams (`.dot`, `.gv`, `.d2`, `.mmd`, `.vl.json`), SVG, ABC music and Ink or Yarn dialogue next to their source each time they are saved, and show the result in the preview."
+        },
+        "aeneas.outputFolder": {
+          "type": "string",
+          "default": "generated",
+          "markdownDescription": "Where generated files go, relative to the workspace folder. Subfolders by kind (`images`, `sounds`, `models`, …), as the MCP server does."
+        }
+      }
+    },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "aeneas",
+          "title": "Aeneas Factory",
+          "icon": "media/activity.svg"
+        }
+      ]
+    },
+    "views": {
+      "aeneas": [
+        {
+          "id": "aeneas.jobs",
+          "name": "Jobs"
+        },
+        {
+          "id": "aeneas.provenance",
+          "name": "Provenance",
+          "type": "webview"
+        },
+        {
+          "id": "aeneas.library",
+          "name": "Library",
+          "type": "webview"
+        }
+      ]
+    },
+    "viewsWelcome": [
+      {
+        "view": "aeneas.jobs",
+        "contents": "No jobs yet.\n[Generate Image](command:aeneas.generateImage)\n[Generate Sound Effect](command:aeneas.generateSound)\n[Run Recipe](command:aeneas.runRecipe)\n[All Commands](command:aeneas.menu)"
+      }
+    ],
+    "customEditors": [
+      {
+        "viewType": "aeneas.glb",
+        "displayName": "Aeneas 3D Model Viewer",
+        "selector": [
+          {
+            "filenamePattern": "*.glb"
+          }
+        ],
+        "priority": "default"
+      },
+      {
+        "viewType": "aeneas.audio",
+        "displayName": "Aeneas Audio Viewer",
+        "selector": [
+          {
+            "filenamePattern": "*.wav"
+          }
+        ],
+        "priority": "default"
+      }
+    ],
+    "commands": [
+      {
+        "command": "aeneas.menu",
+        "title": "Show All Commands",
+        "category": "Aeneas"
+      },
+      {
+        "command": "aeneas.generateImage",
+        "title": "Generate Image…",
+        "category": "Aeneas",
+        "icon": "$(sparkle)"
+      },
+      {
+        "command": "aeneas.editImage",
+        "title": "Edit Image by Instruction…",
+        "category": "Aeneas"
+      },
+      {
+        "command": "aeneas.makeTexture",
+        "title": "Make Seamless Texture…",
+        "category": "Aeneas"
+      },
+      {
+        "command": "aeneas.imageTo3d",
+        "title": "Make 3D Model from Image",
+        "category": "Aeneas"
+      },
+      {
+        "command": "aeneas.generateSound",
+        "title": "Generate Sound Effect…",
+        "category": "Aeneas"
+      },
+      {
+        "command": "aeneas.generateSpeech",
+        "title": "Generate Speech…",
+        "category": "Aeneas"
+      },
+      {
+        "command": "aeneas.upscale",
+        "title": "Upscale Image 4x",
+        "category": "Aeneas"
+      },
+      {
+        "command": "aeneas.removeBackground",
+        "title": "Remove Background",
+        "category": "Aeneas"
+      },
+      {
+        "command": "aeneas.runRecipe",
+        "title": "Run Recipe…",
+        "category": "Aeneas"
+      },
+      {
+        "command": "aeneas.render",
+        "title": "Render Source to Asset",
+        "category": "Aeneas",
+        "icon": "$(play)"
+      },
+      {
+        "command": "aeneas.openPreview",
+        "title": "Open Preview to the Side",
+        "category": "Aeneas",
+        "icon": "$(open-preview)"
+      },
+      {
+        "command": "aeneas.showProvenance",
+        "title": "Show Provenance",
+        "category": "Aeneas"
+      },
+      {
+        "command": "aeneas.openInBlender",
+        "title": "Open in Blender",
+        "category": "Aeneas"
+      },
+      {
+        "command": "aeneas.openInGimp",
+        "title": "Open in GIMP",
+        "category": "Aeneas"
+      },
+      {
+        "command": "aeneas.openInGodot",
+        "title": "Open in Godot",
+        "category": "Aeneas"
+      },
+      {
+        "command": "aeneas.refreshJobs",
+        "title": "Refresh",
+        "category": "Aeneas",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "aeneas.cancelJob",
+        "title": "Cancel Job",
+        "category": "Aeneas",
+        "icon": "$(close)"
+      },
+      {
+        "command": "aeneas.openJobResult",
+        "title": "Open Result",
+        "category": "Aeneas"
+      },
+      {
+        "command": "aeneas.credits",
+        "title": "Write Project Credits",
+        "category": "Aeneas"
+      },
+      {
+        "command": "aeneas.showLog",
+        "title": "Show Log",
+        "category": "Aeneas"
+      }
+    ],
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "aeneas.cancelJob",
+          "when": "false"
+        },
+        {
+          "command": "aeneas.openJobResult",
+          "when": "false"
+        },
+        {
+          "command": "aeneas.refreshJobs",
+          "when": "false"
+        }
+      ],
+      "view/title": [
+        {
+          "command": "aeneas.generateImage",
+          "when": "view == aeneas.jobs",
+          "group": "navigation@1"
+        },
+        {
+          "command": "aeneas.refreshJobs",
+          "when": "view == aeneas.jobs",
+          "group": "navigation@2"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "aeneas.cancelJob",
+          "when": "view == aeneas.jobs && viewItem == job.active",
+          "group": "inline"
+        }
+      ],
+      "editor/title": [
+        {
+          "command": "aeneas.openPreview",
+          "when": "resourceExtname =~ /^\\.(dot|gv|d2|mmd|svg|abc|ink|yarn)$/ || resourceFilename =~ /\\.vl\\.json$/",
+          "group": "navigation"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "aeneas.render",
+          "when": "resourceExtname =~ /^\\.(dot|gv|d2|mmd|svg|abc|ink|yarn)$/ || resourceFilename =~ /\\.vl\\.json$/",
+          "group": "aeneas@1"
+        },
+        {
+          "command": "aeneas.imageTo3d",
+          "when": "resourceExtname =~ /^\\.(png|jpg|jpeg|webp)$/",
+          "group": "aeneas@2"
+        },
+        {
+          "command": "aeneas.editImage",
+          "when": "resourceExtname =~ /^\\.(png|jpg|jpeg|webp)$/",
+          "group": "aeneas@3"
+        },
+        {
+          "command": "aeneas.upscale",
+          "when": "resourceExtname =~ /^\\.(png|jpg|jpeg|webp)$/",
+          "group": "aeneas@4"
+        },
+        {
+          "command": "aeneas.removeBackground",
+          "when": "resourceExtname =~ /^\\.(png|jpg|jpeg|webp)$/",
+          "group": "aeneas@5"
+        },
+        {
+          "command": "aeneas.showProvenance",
+          "when": "resourceExtname =~ /^\\.(png|glb|wav|json|yarnc)$/",
+          "group": "aeneas@6"
+        },
+        {
+          "command": "aeneas.openInBlender",
+          "when": "resourceExtname =~ /^\\.(glb|gltf|blend|fbx|obj|stl|ply|usd|usdz|bvh)$/",
+          "group": "aeneas@7"
+        },
+        {
+          "command": "aeneas.openInGimp",
+          "when": "resourceExtname =~ /^\\.(png|jpg|jpeg|webp|xcf|tif|tiff)$/",
+          "group": "aeneas@8"
+        },
+        {
+          "command": "aeneas.openInGodot",
+          "when": "resourceFilename == project.godot || resourceExtname == .tscn",
+          "group": "aeneas@9"
+        }
+      ]
+    },
+    "languages": [
+      {
+        "id": "abc",
+        "extensions": [
+          ".abc"
+        ],
+        "aliases": [
+          "ABC music notation"
+        ]
+      },
+      {
+        "id": "ink",
+        "extensions": [
+          ".ink"
+        ],
+        "aliases": [
+          "Ink"
+        ]
+      },
+      {
+        "id": "yarnspinner",
+        "extensions": [
+          ".yarn"
+        ],
+        "aliases": [
+          "Yarn Spinner"
+        ]
+      },
+      {
+        "id": "d2",
+        "extensions": [
+          ".d2"
+        ],
+        "aliases": [
+          "D2"
+        ]
+      },
+      {
+        "id": "mermaid",
+        "extensions": [
+          ".mmd"
+        ],
+        "aliases": [
+          "Mermaid"
+        ]
+      },
+      {
+        "id": "dot",
+        "extensions": [
+          ".dot",
+          ".gv"
+        ],
+        "aliases": [
+          "Graphviz DOT"
+        ]
+      }
+    ]
+  },
+  "scripts": {
+    "build": "node esbuild.mjs",
+    "watch": "node esbuild.mjs --watch",
+    "typecheck": "tsc --noEmit -p .",
+    "test:unit": "mocha --ui tdd out-test/test/unit/*.test.js",
+    "pretest": "tsc -p tsconfig.test.json && node esbuild.mjs",
+    "test": "npm run test:unit && node out-test/test/run.js",
+    "package": "node esbuild.mjs --production && vsce package --no-dependencies --target darwin-arm64 -o aeneas-factory.vsix",
+    "tour": "tsc -p tsconfig.test.json && node esbuild.mjs && node out-test/test/run-tour.js"
+  },
+  "devDependencies": {
+    "@types/mocha": "10.0.10",
+    "@types/node": "22.19.1",
+    "@types/three": "0.180.0",
+    "@types/vscode": "1.95.0",
+    "@vscode/test-electron": "2.5.2",
+    "@vscode/vsce": "3.6.2",
+    "esbuild": "0.25.12",
+    "mocha": "11.7.5",
+    "ovsx": "1.2.0",
+    "three": "0.180.0",
+    "typescript": "5.9.3"
+  },
+  "preview": true,
+  "aeneas": {
+    "minimumFactory": "0.4.0"
+  }
+}

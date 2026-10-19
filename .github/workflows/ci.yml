@@ -37,6 +37,27 @@ jobs:
           bin/aen models list
           bin/aen recipe list
 
+  vscode:
+    name: Editor extension (typecheck, unit tests, package)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: editors/vscode
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: editors/vscode/package-lock.json
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: npm run typecheck
+      - name: Unit tests (the integration tests need a Mac with the factory service; run them with make vscode-test)
+        run: npx tsc -p tsconfig.test.json && npm run test:unit
+      - run: npm run package
+
   downloads:
     name: Every pinned download still answers
     runs-on: ubuntu-latest

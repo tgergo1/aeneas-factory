@@ -138,3 +138,26 @@ def test_login_agent_runs_the_service_without_idle_exit():
     assert d["Label"] == service.AGENT_LABEL and d["RunAtLoad"] is True
     assert d["ProgramArguments"][-3:] == ["serve", "--idle-exit", "0"]
     assert d["KeepAlive"] == {"SuccessfulExit": False}
+
+
+def test_light_jobs_do_not_wait_behind_gpu_jobs(server, monkeypatch):
+    port, token, home, done = server
+    gate = threading.Event()
+
+    def slow(out, ctx=None):
+        gate.wait(10)
+        return {"path": str(out)}
+
+    def quick(out, source="", ctx=None):
+        return {"path": str(out)}
+
+    monkeypatch.setitem(ops.OPS, "slow", slow)
+    monkeypatch.setitem(ops.OPS, "diagram", quick)
+    first = call(port, token, "POST", "/jobs", {"kind": "op", "spec": {"op": "slow", "args": {"out": str(home / "a.glb")}}})
+    second = call(port, token, "POST", "/jobs", {"kind": "op", "spec": {"op": "diagram", "library": False,
+                                                                        "args": {"out": str(home / "d.png")}}})
+    second = call(port, token, "GET", f"/jobs/{second['id']}?wait=5")
+    assert second["status"] == "done"  # while the GPU lane is still busy
+    assert call(port, token, "GET", "/health")["running"] == 1
+    gate.set()
+    assert call(port, token, "GET", f"/jobs/{first['id']}?wait=5")["status"] == "done"

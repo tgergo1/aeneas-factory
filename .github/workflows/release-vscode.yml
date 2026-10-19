@@ -1,0 +1,60 @@
+# Release the editor extension: push a tag vscode-v<version> (matching editors/vscode/package.json).
+# Always: a GitHub release with the .vsix. With the secrets VSCE_PAT and OVSX_PAT: the VS Code
+# Marketplace and Open VSX too (without them those steps say so and are skipped).
+name: Release VS Code extension
+
+on:
+  push:
+    tags: ["vscode-v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: editors/vscode
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: editors/vscode/package-lock.json
+      - name: The tag matches package.json
+        run: |
+          want="vscode-v$(node -p "require('./package.json').version")"
+          [ "$GITHUB_REF_NAME" = "$want" ] || { echo "tag $GITHUB_REF_NAME does not match $want"; exit 1; }
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: npm run typecheck
+      - run: npx tsc -p tsconfig.test.json && npm run test:unit
+      - name: Package (macOS, Apple Silicon)
+        run: |
+          npm run package
+          mv aeneas-factory.vsix "aeneas-factory-${GITHUB_REF_NAME#vscode-v}.vsix"
+      - name: GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          v="${GITHUB_REF_NAME#vscode-v}"
+          gh release create "$GITHUB_REF_NAME" "aeneas-factory-$v.vsix" --verify-tag --prerelease \
+            --title "VS Code extension $v" \
+            --notes "Aeneas Factory for VS Code, Cursor, Windsurf and VSCodium, version $v (preview). Needs Aeneas Factory 0.4 or later on an Apple Silicon Mac.
+
+          Install: download aeneas-factory-$v.vsix, then in the editor run **Extensions: Install from VSIX…**, or: \`code --install-extension aeneas-factory-$v.vsix\`. See [editors/vscode/README.md](https://github.com/tgergo1/aeneas-factory/blob/$GITHUB_REF_NAME/editors/vscode/README.md)."
+      - name: VS Code Marketplace
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+        run: |
+          if [ -z "$VSCE_PAT" ]; then echo "::notice::VSCE_PAT is not set: not published to the VS Code Marketplace"; exit 0; fi
+          npx vsce publish --packagePath "aeneas-factory-${GITHUB_REF_NAME#vscode-v}.vsix"
+      - name: Open VSX (Cursor, Windsurf, VSCodium)
+        env:
+          OVSX_PAT: ${{ secrets.OVSX_PAT }}
+        run: |
+          if [ -z "$OVSX_PAT" ]; then echo "::notice::OVSX_PAT is not set: not published to Open VSX"; exit 0; fi
+          npx ovsx publish --packagePath "aeneas-factory-${GITHUB_REF_NAME#vscode-v}.vsix"

@@ -1,0 +1,11 @@
+**
+!dist/extension.js
+!dist/glb-viewer.js
+!media/*.css
+!media/*.js
+!media/*.svg
+!media/icon.png
+!package.json
+!README.md
+!LICENSE
+!THIRD_PARTY.md

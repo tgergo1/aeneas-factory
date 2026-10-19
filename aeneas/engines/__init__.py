@@ -43,8 +43,10 @@ class Runner:
         if self.cancelled:
             raise Cancelled()
         if code != 0:
-            tail = log_path.read_text(errors="replace").splitlines()[-20:]
-            raise EngineError(f"{Path(str(cmd[0])).name} failed (exit {code}). End of {portable(log_path)}:\n"
+            # the tool's own words, without the command line the log starts with
+            tail = [l for l in log_path.read_text(errors="replace").splitlines() if not l.startswith("$ ")][-20:]
+            tool = cmd[3] if str(cmd[0]).endswith("sandbox-exec") and len(cmd) > 3 else cmd[0]
+            raise EngineError(f"{Path(str(tool)).name} failed (exit {code}). End of {portable(log_path)}:\n"
                               + "\n".join(tail))
 
     def cancel(self):

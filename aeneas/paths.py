@@ -46,8 +46,14 @@ def ffmpeg():
 def portable(path):
     """A path as it should appear in a record: relative to the current folder when inside it,
     `aeneas-factory/...` when inside the factory, else with the home folder as ~. Symlinks are kept."""
+    if not os.path.isabs(str(path)):
+        return str(path)  # already relative, or not a path at all (-Tpng, a prompt)
     s = os.path.abspath(str(path))
-    for base, prefix in ((os.path.abspath(os.getcwd()), ""), (str(ROOT), "aeneas-factory/")):
+    cwd = os.path.abspath(os.getcwd())
+    # Relative to the current folder only when that is inside home: a service started at login runs in /,
+    # where "relative" would be Users/<name>/...
+    bases = ([(cwd, "")] if cwd.startswith(HOME + os.sep) else []) + [(str(ROOT), "aeneas-factory/")]
+    for base, prefix in bases:
         try:
             return prefix + str(Path(s).relative_to(base))
         except ValueError:

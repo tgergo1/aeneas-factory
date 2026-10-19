@@ -5,7 +5,7 @@
 **Built with DINOv3**: the 3D generator (TRELLIS.2) uses Meta's DINOv3 image features under the [DINOv3 License](https://ai.meta.com/resources/models-and-libraries/dinov3-license); see [Licences](#licences).
 
 <p align="center">
-  <img src="docs/factory.svg" alt="Diagram: agents use the MCP server, scripts the aen command line, people ComfyUI and Blender. All work goes through one factory service: licence policy, engine, checks, ranked candidates, provenance, asset library. Engines: stable-diffusion.cpp (Z-Image Turbo, FLUX.2 klein), trellis.cpp (TRELLIS.2), MLX (MOSS-SoundEffect, Kokoro), Real-ESRGAN, BiRefNet, ComfyUI, Blender, ffmpeg. Explicit tools: diagrams, SVG, music, dialogue and 25 more, sandboxed." width="100%">
+  <img src="docs/factory.svg" alt="Diagram: agents use the MCP server, scripts the aen command line, people the VS Code extension, ComfyUI and Blender. All work goes through one factory service: licence policy, engine, checks, ranked candidates, provenance, asset library. Engines: stable-diffusion.cpp (Z-Image Turbo, FLUX.2 klein), trellis.cpp (TRELLIS.2), MLX (MOSS-SoundEffect, Kokoro), Real-ESRGAN, BiRefNet, ComfyUI, Blender, ffmpeg. Explicit tools: diagrams, SVG, music, dialogue and 25 more, sandboxed." width="100%">
 </p>
 
 ## What it does
@@ -116,6 +116,14 @@ codex mcp add aeneas -- "$PWD/bin/aen" mcp
 - Long work (3D takes minutes) returns a **job id at once**; `job_status` waits for it.
 - Outputs go to `<project_dir>/generated/`. The server **never runs code it is sent, never downloads models, and writes only under your home folder, outside the factory**. The compose tools take notation and markup (DOT, SVG, ABC, Ink), not programs, and run sandboxed.
 - [`AGENTS.md`](AGENTS.md) tells agents how to use all this, plus Blender, GIMP and free asset libraries, with the licence rules. `scripts/mcp_smoke.py` tests the whole path the way an agent uses it.
+
+## In the editor
+
+The VS Code extension ([`editors/vscode`](editors/vscode); also Cursor, Windsurf and VSCodium) puts the factory in the editor: diagrams, SVG, ABC music and Ink or Yarn dialogue render beside their source on every save; `.glb` models open in a 3D viewer with their real size and `.wav` files with their waveform and levels; a Provenance view shows how the open file was made (models, licences, required credits, prompt, seed, checks, and whether the file still matches its record); and there are a Library search with thumbnails, a Jobs view, generation commands, and hand-off to Blender, GIMP and Godot. It is a client of the same service, so the editor, the command line and agents share one queue and one library.
+
+```bash
+make vscode-install       # build the extension and install it (needs Node; VSCODE_CLI=cursor for Cursor)
+```
 
 ## The command line
 
@@ -270,7 +278,8 @@ The service listens on 127.0.0.1 only. Every request needs the token in `~/.aene
 ## Development
 
 ```bash
-make test           # 39 tests, no models or GPU needed
+make test           # 41 tests, no models or GPU needed
+make vscode-test    # the editor extension: unit tests, then integration tests in a real VS Code
 python scripts/gen_docs.py --check    # the docs agree with models.json
 .venv/bin/python scripts/mcp_smoke.py ~/some/project    # the MCP path end to end
 ```

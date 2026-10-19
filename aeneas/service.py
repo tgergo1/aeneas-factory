@@ -34,6 +34,9 @@ AGENT_LABEL = "com.aeneas-factory.service"
 AGENT_PLIST = Path.home() / "Library" / "LaunchAgents" / f"{AGENT_LABEL}.plist"
 PATH_ARGS = {"src", "init", "image"}
 LIST_PATH_ARGS = {"refs"}
+# Operations that render text with explicit tools: no models, about a second each. They run in their own lane
+# so a diagram or a tune is not stuck behind a 3D job on the GPU lane.
+LIGHT_OPS = {"diagram", "svg", "music", "dialogue"}
 
 
 class Job:
@@ -59,10 +62,11 @@ class Job:
 class Factory:
     def __init__(self):
         self.jobs, self.order = {}, []
-        self.q = queue.Queue()
+        self.lanes = {"gpu": queue.Queue(), "light": queue.Queue()}
         self.last_activity = time.time()
         self.idle_exit_minutes = 0
-        threading.Thread(target=self._work, daemon=True).start()
+        for q in self.lanes.values():
+            threading.Thread(target=self._work, args=(q,), daemon=True).start()
 
     def touch(self):
         self.last_activity = time.time()
@@ -80,12 +84,13 @@ class Factory:
         self.jobs[job.id] = job
         self.order.append(job.id)
         job.save()
-        self.q.put(job)
+        light = kind == "op" and spec.get("op") in LIGHT_OPS
+        self.lanes["light" if light else "gpu"].put(job)
         return job
 
-    def _work(self):
+    def _work(self, q):
         while True:
-            job = self.q.get()
+            job = q.get()
             if job.status == "cancelled":
                 continue
             job.status, job.started, job.message = "running", time.time(), "starting"
@@ -94,7 +99,8 @@ class Factory:
             def progress(f, msg, job=job):
                 job.progress, job.message = max(job.progress, min(f, 1.0)), msg
 
-            ctx = ops.Ctx(runner=job.runner, progress=progress)
+            # "library": false (live previews) keeps a result out of the asset library
+            ctx = ops.Ctx(runner=job.runner, progress=progress, add_to_library=job.spec.get("library", True) is not False)
             try:
                 if job.kind == "op":
                     job.result = ops.run(job.spec["op"], dict(job.spec.get("args", {})), ctx)
@@ -190,6 +196,7 @@ def make_handler(factory, token, port):
                     from . import scoring
                     return self._send(200, {"ok": True, "version": __version__, "pid": os.getpid(),
                                             "queued": sum(j.status == "queued" for j in factory.jobs.values()),
+                                            "running": sum(j.status == "running" for j in factory.jobs.values()),
                                             "idle_seconds": round(factory.idle_seconds()),
                                             "idle_exit_minutes": factory.idle_exit_minutes,
                                             "models_loaded": scoring.loaded() + (["moss-sfx"] if _moss_loaded() else [])})
@@ -268,7 +275,7 @@ def serve(port=None, idle_exit=None):
         threading.Thread(target=watch, daemon=True).start()
     fd = os.open(INFO, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
     with os.fdopen(fd, "w") as f:
-        json.dump({"port": port, "token": token, "pid": os.getpid(), "version": __version__}, f)
+        json.dump({"port": port, "token": token, "pid": os.getpid(), "version": __version__, "root": str(ROOT)}, f)
     print(f"aeneas-factory service on 127.0.0.1:{port} (pid {os.getpid()}, "
           f"{'stops after ' + str(idle_exit) + ' idle minutes' if idle_exit else 'stays running'})", flush=True)
     try:

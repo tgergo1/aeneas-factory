@@ -33,7 +33,7 @@ ACCEPT_FLAGS  := $(foreach a,$(ACCEPT),--accept $(a))
 .PHONY: help install all prereqs factory tools sd trellis moss scoring matte speech comfyui comfyui-run \
         models models-image models-3d models-sound models-scoring models-upscale models-matte models-speech \
         models-extras extras explicit check check-quick verify list test service-start service-stop autostart autostart-off mcp-info \
-        clean-tools distclean
+        vscode vscode-install vscode-test clean-tools distclean
 
 help: ## Show this list
 	@echo "Aeneas Factory: local images, textures, 3D models, sound and speech on Apple Silicon."
@@ -110,7 +110,7 @@ explicit: factory ## Explicit tools: code and text in, assets out (Homebrew, Pyt
 	uv venv --quiet --allow-existing --python $(PYTHON_VERSION) tools/explicit/.venv
 	UV_HTTP_TIMEOUT=180 uv pip install --quiet --python tools/explicit/.venv/bin/python --require-hashes -r requirements/explicit.txt
 	mkdir -p tools/explicit/node && cp requirements/explicit-node/package.json requirements/explicit-node/package-lock.json tools/explicit/node/
-	cd tools/explicit/node && PUPPETEER_CACHE_DIR="$$PWD/.cache/puppeteer" npm ci --no-audit --no-fund
+	cd tools/explicit/node && PUPPETEER_CACHE_DIR="$$PWD/.cache/puppeteer" npm ci --ignore-scripts --no-audit --no-fund
 	[ -x tools/explicit/dotnet/ysc ] || dotnet tool install YarnSpinner.Console --version 3.2.2 --tool-path tools/explicit/dotnet
 	$(AEN) models download generaluser-gs
 	$(AEN) tools check
@@ -169,6 +169,15 @@ autostart-off: ## Stop starting the service at login
 mcp-info: ## Show how to register the MCP server with Claude Code and Codex
 	@echo "Claude Code:  claude mcp add --scope user aeneas -- $(CURDIR)/bin/aen mcp"
 	@echo "Codex:        codex mcp add aeneas -- $(CURDIR)/bin/aen mcp"
+
+# The editor extension (editors/vscode): VS Code, Cursor, Windsurf, VSCodium
+VSCODE_CLI ?= $(shell command -v code 2>/dev/null || echo "/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code")
+vscode: ## Build the VS Code extension (editors/vscode/aeneas-factory.vsix); needs Node
+	cd editors/vscode && npm ci --ignore-scripts --no-audit --no-fund && npm run package
+vscode-install: vscode ## Build the extension and install it into VS Code (VSCODE_CLI=cursor for Cursor)
+	"$(VSCODE_CLI)" --install-extension editors/vscode/aeneas-factory.vsix --force
+vscode-test: ## Test the extension: unit tests, then integration tests in a real VS Code against the running service
+	cd editors/vscode && npm ci --ignore-scripts --no-audit --no-fund && npm test
 
 clean-tools: ## Remove the tool builds and envs (keeps sources and models)
 	rm -rf tools/stable-diffusion.cpp/build tools/trellis.cpp/build tools/moss-soundeffect-mlx/.venv tools/kokoro/.venv tools/.sd-* tools/.trellis-* tools/.moss-*
