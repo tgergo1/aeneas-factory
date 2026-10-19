@@ -110,7 +110,7 @@ explicit: factory ## Explicit tools: code and text in, assets out (Homebrew, Pyt
 	uv venv --quiet --allow-existing --python $(PYTHON_VERSION) tools/explicit/.venv
 	UV_HTTP_TIMEOUT=180 uv pip install --quiet --python tools/explicit/.venv/bin/python --require-hashes -r requirements/explicit.txt
 	mkdir -p tools/explicit/node && cp requirements/explicit-node/package.json requirements/explicit-node/package-lock.json tools/explicit/node/
-	cd tools/explicit/node && PUPPETEER_CACHE_DIR="$$PWD/.cache/puppeteer" npm ci --ignore-scripts --no-audit --no-fund
+	cd tools/explicit/node && PUPPETEER_CACHE_DIR="$$PWD/.cache/puppeteer" npm ci --no-audit --no-fund
 	[ -x tools/explicit/dotnet/ysc ] || dotnet tool install YarnSpinner.Console --version 3.2.2 --tool-path tools/explicit/dotnet
 	$(AEN) models download generaluser-gs
 	$(AEN) tools check

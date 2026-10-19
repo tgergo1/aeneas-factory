@@ -40,6 +40,8 @@ TOOLS = {
     "faust2sndfile": ("sound", "brew", "GPL-2.0 (output is yours)", "compile a Faust program into a sound-file processor"),
     "sclang": ("sound", "app:SuperCollider.app/Contents/MacOS/sclang", "GPL-3.0", "SuperCollider: synthesis and algorithmic composition; Score.recordNRT renders offline"),
     "sox": ("sound", "brew", "GPL-2.0", "audio effects, conversion, synthesis of test tones"),
+    "sonic-pi": ("music", "sonic-pi", "MIT (Sonic Pi; engine GPL-3.0; samples CC0; output is yours)",
+                 "Sonic Pi: music as live-coded Ruby (synths, samples, FX), rendered headless to WAV, nothing played aloud: -o out.wav -d SECONDS -f song.rb [-s SEED]"),
     # 3D
     "openscad": ("3d", "app:OpenSCAD.app/Contents/MacOS/OpenSCAD", "GPL-2.0", "solid models as code to STL, 3MF, OFF"),
     "gltfpack": ("3d", "node", "MIT", "optimise and compress glTF/GLB (meshoptimizer)"),
@@ -56,6 +58,23 @@ TOOLS = {
     # motion
     "manim": ("motion", "venv-bin", "MIT", "animation as code: explainers, titles, UI motion (no LaTeX: use Text)"),
 }
+
+
+SONIC_PI_APP = Path(os.environ.get("AEN_SONIC_PI_APP", "/Applications/Sonic Pi.app"))
+SONIC_PI_RECORD = ROOT / "aeneas" / "engines" / "sonicpi_record.rb"
+
+
+def sonic_pi():
+    """Sonic Pi's own Ruby running the factory's headless recorder, or None."""
+    ruby = SONIC_PI_APP / "Contents/Resources/app/server/native/ruby/bin/ruby"
+    return f"{ruby}\0{SONIC_PI_RECORD}" if ruby.exists() else None
+
+
+def sonic_pi_version():
+    try:
+        return (SONIC_PI_APP / "Contents/Resources/VERSION").read_text().strip()
+    except OSError:
+        return None
 
 
 def soundfont():
@@ -102,28 +121,43 @@ def locate(name):
     if how.startswith("app:"):
         p = APPS / how[4:]
         return str(p) if p.exists() else None
+    if how == "sonic-pi":
+        return sonic_pi()
     if how == "blender":
         return blender()
     return shutil.which(name)
 
 
-def sandbox_profile(write_dir):
-    """macOS sandbox: no network, writes only inside write_dir and temporary folders."""
+def sandbox_profile(write_dir, loopback=False, readable=None):
+    """macOS sandbox: no network, writes only inside write_dir and temporary folders.
+    loopback: also allow network on this machine's loopback (programs made of local parts that talk over
+    it, like Sonic Pi). readable: when given, nothing under the home folder can be read except write_dir
+    and these paths (for code that is a program, not notation: it cannot read the service token, keys
+    or documents)."""
     w = os.path.realpath(write_dir)
-    return ("(version 1)(allow default)(deny network*)(deny file-write*)"
+    home = os.path.realpath(os.path.expanduser("~"))
+    net = "(deny network*)"
+    if loopback:
+        net += ('(allow network-bind network-inbound (local ip "localhost:*"))'
+                '(allow network-outbound (remote ip "localhost:*"))')
+    reads = ""
+    if readable is not None:
+        allowed = " ".join(f'(subpath "{os.path.realpath(r)}")' for r in [w, *readable])
+        reads = f'(deny file-read-data (subpath "{home}"))(allow file-read-data {allowed})'
+    return ("(version 1)(allow default)" + net + "(deny file-write*)"
             f'(allow file-write* (subpath "{w}") (subpath "/private/tmp") (subpath "/private/var/folders")'
             ' (literal "/dev/null") (literal "/dev/stdout") (literal "/dev/stderr") (literal "/dev/tty")'
-            f' (subpath "{os.path.expanduser("~/Library/Caches")}"))')
+            f' (subpath "{home}/Library/Caches"))' + reads)
 
 
-def command(name, args, sandbox_dir=None):
+def command(name, args, sandbox_dir=None, loopback=False, readable=None):
     exe = locate(name)
     if not exe:
         raise FileNotFoundError(f"{name} is not installed; run: make explicit")
-    cmd = [*exe.split("\0"), *args]  # node scripts are "node\0script"
+    cmd = [*exe.split("\0"), *args]  # node and ruby scripts are "interpreter\0script"
     if sandbox_dir:
         Path(sandbox_dir).mkdir(parents=True, exist_ok=True)
-        cmd = ["sandbox-exec", "-p", sandbox_profile(sandbox_dir), *cmd]
+        cmd = ["sandbox-exec", "-p", sandbox_profile(sandbox_dir, loopback, readable), *cmd]
     return cmd
 
 

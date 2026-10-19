@@ -48,7 +48,7 @@ npm run tour -- DIR   # a step-by-step tour of the views over DIR, for screensho
 npm run package       # aeneas-factory.vsix (macOS, Apple Silicon)
 ```
 
-Releases: bump `version` in `package.json`, commit, and push a tag `vscode-v<version>`. The release workflow checks the tag against the version, runs the unit tests, packages the extension, attaches the `.vsix` to a GitHub release, and publishes it to the VS Code Marketplace and Open VSX when the repository has the secrets `VSCE_PAT` and `OVSX_PAT`.
+Releases: GitHub Actions are turned off for this repository, so release by hand: bump `version` in `package.json`, `npm run package`, then `gh release create vscode-v<version> aeneas-factory.vsix --prerelease` (and `npx vsce publish --packagePath …` / `npx ovsx publish …` for the stores). With Actions on, pushing a tag `vscode-v<version>` runs [the release workflow](../../.github/workflows/release-vscode.yml), which checks the tag against the version, runs the unit tests, packages the extension, attaches the `.vsix` to a GitHub release, and publishes it to the VS Code Marketplace and Open VSX when the repository has the secrets `VSCE_PAT` and `OVSX_PAT`.
 
 The integration tests use the installed VS Code (or a downloaded one with `AEN_VSCODE=download`) and the running factory service, and work in a temporary folder under `~/.aeneas`.
 

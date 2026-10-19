@@ -202,13 +202,19 @@ def render_svg(svg: str, project_dir: str, name: str = "", width: int = 0, wait_
 
 @mcp.tool()
 def compose_music(source: str, project_dir: str, format: str = "abc", name: str = "", master: bool = True,
-                  wait_seconds: int = 90) -> list:
-    """Music from notation, rendered with General MIDI instruments (GeneralUser GS SoundFont), mastered to -18 LUFS.
-    format "abc": ABC notation (use %%MIDI program N lines for instruments). format "notes": JSON
+                  seconds: float = 16, seed: int | None = None, wait_seconds: int = 90) -> list:
+    """Music from notation or code, mastered to -18 LUFS; returns the WAV with a waveform picture.
+    format "abc": ABC notation (use %%MIDI program N lines for instruments), General MIDI instruments
+    (GeneralUser GS SoundFont); also returns the MIDI. format "notes": JSON
     {"tempo": 120, "tracks": [{"program": 0, "drums": false, "notes": [[pitch, start_beat, length_beats, velocity]]}]}.
-    Returns the WAV (with a waveform picture) and the MIDI."""
-    return _submit("music", {"source": source, "format": format, "master": master,
-                             "out": _out("music", project_dir, name, "music")}, wait_seconds)
+    format "sonic-pi": Sonic Pi code (live_loop, play, sample :bd_haus, synths, with_fx :reverb ...), rendered for
+    `seconds` (up to 180) in real time plus about 7 s to boot, nothing played aloud; `seed` makes random choices
+    repeatable. It runs sandboxed: no network, no access to the user's files."""
+    args = {"source": source, "format": format, "master": master, "out": _out("music", project_dir, name, "music")}
+    if format == "sonic-pi":
+        args.update(seconds=seconds, seed=seed)
+        wait_seconds = max(wait_seconds, int(seconds) + 30)
+    return _submit("music", {k: v for k, v in args.items() if v is not None}, wait_seconds)
 
 
 @mcp.tool()

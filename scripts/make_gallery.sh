@@ -39,6 +39,7 @@ cd explicit
 [ -f pipeline.png ] || ../$B/aen diagram pipeline.d2 --kind d2 --local -o pipeline.png >/dev/null
 [ -f potion.png ] || ../$B/aen svg potion.svg --width 256 --local -o potion.png >/dev/null
 [ -f tavern.wav ] || ../$B/aen music tavern.abc --local -o tavern.wav >/dev/null
+[ -f groove.wav ] || ../$B/aen music groove.rb --format sonic-pi --seconds 12 --seed 3 --local -o groove.wav >/dev/null
 # Pixel art: the chest of step 1 cut out, cut down to 48 px and 12 colours, then enlarged without smoothing
 [ -f chest-pixel.png ] || ../$B/aen tool magick -- ../chest.png -fuzz 8% -fill none -draw "color 0,0 floodfill" \
   -filter Triangle -resize 48x48 -channel A -threshold 50% +channel -dither None -colors 12 \

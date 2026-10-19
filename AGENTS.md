@@ -41,7 +41,7 @@ If the `aeneas` MCP server is connected, use its tools; they queue on the shared
 When the result must be exact, editable or consistent (icons, UI, diagrams, pixel art, music, CAD parts, levels, dialogue), write a source and render it instead of generating. `aen tools list` shows what is installed; `aen tools check` proves each works.
 
 Over MCP (text in, sandboxed, checked, source kept in the provenance):
-- `render_diagram` (graphviz, d2, mermaid, vega-lite), `render_svg` (any SVG you write), `compose_music` (ABC notation, or a JSON note list, played with General MIDI instruments and mastered), `compile_dialogue` (Ink or Yarn Spinner), `explicit_tools` (the full list).
+- `render_diagram` (graphviz, d2, mermaid, vega-lite), `render_svg` (any SVG you write), `compose_music` (ABC notation, or a JSON note list, played with General MIDI instruments and mastered; or `format="sonic-pi"` with Sonic Pi code and `seconds`, rendered in real time without playing aloud), `compile_dialogue` (Ink or Yarn Spinner), `explicit_tools` (the full list).
 
 The same four from a shell: `aen diagram SOURCE --kind d2 -o out.png`, `aen svg SOURCE -o out.png`, `aen music SOURCE -o out.wav` (`--format notes` for JSON), `aen dialogue SOURCE -o story.json` (`--kind yarn`); SOURCE is the text or a file.
 
@@ -54,7 +54,7 @@ From a shell, `aen tool NAME [--sandbox OUTDIR] -- args` runs any of them with t
 | Icons, logos, UI art | write SVG, `render_svg`; trace a picture to SVG with `vtracer` in `aen tool python` |
 | Diagrams and charts | `render_diagram` |
 | Procedural textures | GLSL through `moderngl` (offscreen) or `opensimplex` noise in `aen tool python`; tile-check with `aen texture`'s seam check |
-| Music | `compose_music` (ABC or notes); `music21` / `pretty_midi` scripts for more; `lilypond` for sheet music; instruments: General MIDI programs |
+| Music | `compose_music` (ABC or notes; General MIDI instruments); Sonic Pi for grooves, loops and electronic textures: `compose_music` with `format="sonic-pi"`, or `aen music song.rb --format sonic-pi --seconds 16 --seed 1` (synths, CC0 samples, FX; real time, so keep takes short); `music21` / `pretty_midi` scripts for more; `lilypond` for sheet music |
 | Sound design | `csound` (.csd), `sclang` (SuperCollider, `Score.recordNRT`), `faust` + `faust2sndfile`; effects with `sox` or `pedalboard` |
 | Solid / CAD parts | `openscad -o part.stl part.scad`, or `build123d` in `aen tool python`; convert with `trimesh` |
 | Mesh processing | UVs: `xatlas`; retopology: Blender `quadriflow_remesh`; repair and simplify: `pymeshlab`; validate: `aen tool gltf-validator -- m.glb`; compress: `aen tool gltfpack -- -i in.glb -o out.glb -cc`; GPU textures: `basisu -ktx2` |

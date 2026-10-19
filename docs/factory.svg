@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 952" width="1200" height="952" role="img" aria-labelledby="t d">
   <title id="t">Aeneas Factory: how it fits together</title>
-  <desc id="d">Agents reach the factory through its MCP server, scripts through the aen command line, people through the VS Code extension, ComfyUI and Blender. All work goes through one factory service on 127.0.0.1 with a single job queue. Every job passes through the licence policy, an engine, automatic checks, optional ranking of candidates, provenance written into and beside the file, and the asset library. Engines: stable-diffusion.cpp for Z-Image Turbo and FLUX.2 klein, trellis.cpp for TRELLIS.2, MLX for MOSS-SoundEffect and Kokoro speech, rembg with BiRefNet, Real-ESRGAN, ComfyUI, Blender and ffmpeg. Recipes, style packs and the model register feed the service. Beside the models, 29 explicit tools turn code and text into exact assets with no models, sandboxed: diagrams (Graphviz, D2, Mermaid, Vega-Lite), SVG and pixel art, music (ABC, FluidSynth, Csound, SuperCollider), 3D (OpenSCAD, build123d, xatlas, PyMeshLab, gltfpack), games (Tiled, Godot, Ink, Yarn Spinner) and motion (pymunk, MuJoCo, Manim).</desc>
+  <desc id="d">Agents reach the factory through its MCP server, scripts through the aen command line, people through the VS Code extension, ComfyUI and Blender. All work goes through one factory service on 127.0.0.1 with a single job queue. Every job passes through the licence policy, an engine, automatic checks, optional ranking of candidates, provenance written into and beside the file, and the asset library. Engines: stable-diffusion.cpp for Z-Image Turbo and FLUX.2 klein, trellis.cpp for TRELLIS.2, MLX for MOSS-SoundEffect and Kokoro speech, rembg with BiRefNet, Real-ESRGAN, ComfyUI, Blender and ffmpeg. Recipes, style packs and the model register feed the service. Beside the models, 30 explicit tools turn code and text into exact assets with no models, sandboxed: diagrams (Graphviz, D2, Mermaid, Vega-Lite), SVG and pixel art, music (ABC, FluidSynth, Sonic Pi, Csound, SuperCollider), 3D (OpenSCAD, build123d, xatlas, PyMeshLab, gltfpack), games (Tiled, Godot, Ink, Yarn Spinner) and motion (pymunk, MuJoCo, Manim).</desc>
   <style>
     .card { fill: #f8fafc; stroke: #e2e8f0; }
     .box { fill: #ffffff; stroke: #cbd5e1; }
@@ -142,9 +142,9 @@
   <text class="faint" x="40" y="700" font-size="11.5" font-weight="600" letter-spacing="1.2">EXPLICIT TOOLS · CODE AND TEXT IN · NO MODELS · SANDBOXED</text>
   <g font-size="12.5">
     <rect class="box exp-s" x="40" y="712" width="1120" height="64" rx="12" stroke-width="1.5"/>
-    <text class="exp mono" x="58" y="740" font-size="15.5" font-weight="700">29 tools</text>
+    <text class="exp mono" x="58" y="740" font-size="15.5" font-weight="700">30 tools</text>
     <text class="mut" x="58" y="760">make explicit · aen tool NAME</text>
-    <text class="txt" x="290" y="740"><tspan class="exp" font-weight="650">diagrams</tspan> Graphviz, D2, Mermaid, Vega-Lite<tspan dx="20" class="exp" font-weight="650">images</tspan> SVG, ImageMagick pixel art<tspan dx="20" class="exp" font-weight="650">music</tspan> ABC, FluidSynth, Csound, SuperCollider</text>
+    <text class="txt" x="290" y="740"><tspan class="exp" font-weight="650">diagrams</tspan> Graphviz, D2, Mermaid, Vega-Lite<tspan dx="20" class="exp" font-weight="650">images</tspan> SVG, ImageMagick pixel art<tspan dx="20" class="exp" font-weight="650">music</tspan> ABC, Sonic Pi, Csound, SuperCollider</text>
     <text class="txt" x="290" y="760"><tspan class="exp" font-weight="650">3D</tspan> OpenSCAD, build123d, xatlas, PyMeshLab, gltfpack<tspan dx="20" class="exp" font-weight="650">games</tspan> Tiled, Godot, Ink, Yarn Spinner<tspan dx="20" class="exp" font-weight="650">motion</tspan> pymunk, MuJoCo, Manim</text>
   </g>
 
@@ -156,9 +156,9 @@
     <text class="mut" x="58" y="864">tools at pinned commits, models pinned and</text>
     <text class="mut" x="58" y="882">SHA-256 checked; all four core models 40.5 GB</text>
     <rect class="box" x="422" y="812" width="355" height="96" rx="12"/>
-    <text class="txt mono" x="440" y="840" font-size="14.5" font-weight="700">aen check · make test · CI</text>
-    <text class="mut" x="440" y="864">a real job through every generator; 41 tests;</text>
-    <text class="mut" x="440" y="882">weekly check that every pinned download answers</text>
+    <text class="txt mono" x="440" y="840" font-size="14.5" font-weight="700">aen check · make test</text>
+    <text class="mut" x="440" y="864">a real job through every generator; 43 tests,</text>
+    <text class="mut" x="440" y="882">run locally (GitHub Actions are off)</text>
     <rect class="box" x="805" y="812" width="355" height="96" rx="12"/>
     <text class="txt mono" x="823" y="840" font-size="14.5" font-weight="700">AGENTS.md</text>
     <text class="mut" x="823" y="864">how agents should use it, plus Blender, GIMP</text>

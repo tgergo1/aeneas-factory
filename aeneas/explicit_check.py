@@ -191,6 +191,17 @@ x.recordNRT(outputFilePath: "sc.wav", headerFormat: "WAV", sampleFormat: "int16"
     return checks.audio(d / "sc.wav")
 
 
+
+def t_sonic_pi(d):
+    (d / "beat.rb").write_text("live_loop :k do\n  sample :bd_haus\n  play :e3, release: 0.2\n  sleep 0.5\nend\n")
+    cmd = explicit.command("sonic-pi", ["-o", str(d / "sp.wav"), "-d", "2", "-s", "1", "-f", str(d / "beat.rb"),
+                                        "-w", str(d / "sp-work")],
+                           sandbox_dir=d, loopback=True, readable=[str(explicit.SONIC_PI_RECORD)])
+    r = subprocess.run(cmd, env=explicit.env(), capture_output=True, text=True, timeout=150)
+    if r.returncode:
+        raise RuntimeError((r.stderr or r.stdout)[-400:])
+    return checks.audio(d / "sp.wav")
+
 def t_sox(d):
     _run("sox", ["-n", "-r", "48000", "-b", "16", str(d / "tone.wav"), "synth", "0.5", "sine", "440", "fade", "0.05",
                  "0.5", "0.1", "reverb", "40"], d)
@@ -287,7 +298,7 @@ def t_manim(d):
 TESTS = {"magick": t_magick, "python": t_python, "resvg": t_resvg, "rsvg-convert": t_rsvg_convert, "dot": t_dot,
          "d2": t_d2, "mmdc": t_mmdc, "vl2png": t_vl2png, "vl2svg": t_vl2svg, "fluidsynth": t_fluidsynth,
          "abc2midi": t_abc2midi, "lilypond": t_lilypond, "csound": t_csound, "faust": t_faust,
-         "faust2sndfile": t_faust2sndfile, "sclang": t_sclang, "sox": t_sox, "openscad": t_openscad,
+         "faust2sndfile": t_faust2sndfile, "sclang": t_sclang, "sonic-pi": t_sonic_pi, "sox": t_sox, "openscad": t_openscad,
          "gltfpack": t_gltfpack, "gltf-validator": t_gltf_validator, "basisu": t_basisu, "colmap": t_colmap,
          "blender": t_blender, "tiled": t_tiled, "tmxrasterizer": t_tmxrasterizer, "godot": t_godot,
          "inkjs-compiler": t_inkjs_compiler, "ysc": t_ysc, "manim": t_manim}

@@ -1,4 +1,5 @@
 import json
+import os
 
 import pytest
 
@@ -59,3 +60,34 @@ def test_sandboxed_commands_do_not_name_the_user_in_records():
     recorded = [provenance._arg(c) for c in cmd]
     assert not any(HOME in c for c in recorded), recorded
     assert "~/somewhere/out" in recorded[2] and recorded[-1].endswith("x.dot")
+
+
+def test_programs_get_a_tighter_sandbox():
+    import os
+    home = os.path.realpath(os.path.expanduser("~"))
+    plain = explicit.sandbox_profile("/tmp/x")
+    assert "(deny network*)" in plain and "localhost" not in plain and "file-read" not in plain
+    tight = explicit.sandbox_profile("/tmp/x", loopback=True, readable=["/tmp/script.rb"])
+    # loopback only, in both directions; nothing else on the network
+    assert '(allow network-outbound (remote ip "localhost:*"))' in tight
+    assert '(allow network-bind network-inbound (local ip "localhost:*"))' in tight
+    assert "(allow network* " not in tight
+    # nothing under the home folder can be read but the work folder and the named paths
+    assert f'(deny file-read-data (subpath "{home}"))' in tight
+    assert '(subpath "/private/tmp/script.rb")' in tight or '(subpath "/tmp/script.rb")' in tight
+
+
+@needs("sonic-pi")
+def test_sonic_pi_code_renders_silently_and_cannot_reach_out(tmp_path):
+    from aeneas import extra  # noqa: F401
+    probe = os.path.expanduser("~/.aeneas/service.json")
+    code = ('begin; File.read("%s"); puts "LEAK token"; rescue Exception; end\n'
+            'begin; require "socket"; TCPSocket.new("1.1.1.1", 443); puts "LEAK net"; rescue Exception; end\n'
+            'play 60, release: 0.5\nsleep 1\n') % probe
+    r = ops.run("music", {"source": code, "format": "sonic-pi", "seconds": 1.5, "out": tmp_path / "s.wav", "master": False},
+                ops.Ctx(add_to_library=False))
+    log = (tmp_path / "s.wav.log").read_text()
+    assert "LEAK" not in log, log[-500:]
+    assert r["checks"]["seconds"] >= 1.4 and r["checks"]["rms_dbfs"] > -60
+    rec = json.loads(open(r["sidecar"]).read())
+    assert rec["source"] == code and "Sonic Pi" in rec["generated_by"]

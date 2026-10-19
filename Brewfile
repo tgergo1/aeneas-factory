@@ -23,6 +23,7 @@ brew "faust"            # GPL-2.0 (compiler; output is yours): DSP as code
 brew "sox"              # GPL-2.0 / LGPL-2.1: audio effects and conversion
 brew "lame"             # LGPL-2.0: MP3 encoder library; faust2sndfile links against it
 cask "supercollider"    # GPL-3.0: synthesis and algorithmic composition
+cask "sonic-pi"         # MIT (engine GPL-3.0, samples CC0): music as live-coded Ruby, rendered silently to WAV
 
 # 3D
 cask "openscad@snapshot"  # GPL-2.0: solid models as code

@@ -1,0 +1,46 @@
+{
+  "generated_by": "aeneas-factory music (Sonic Pi 5.0.0)",
+  "created": "2026-10-19T16:25:23+02:00",
+  "seconds": 16.8,
+  "output": "groove.wav",
+  "params": {
+    "format": "sonic-pi",
+    "seconds": 12.0,
+    "seed": 3,
+    "samples": "Sonic Pi's bundled samples (CC0)",
+    "mastered": "loudness -18 LUFS, peak -1 dBTP"
+  },
+  "versions": {
+    "aeneas-factory": "0.4.0 (3a2b7edd5fb06ecbcea6d220da16ca0c4d52e4c1+modified)"
+  },
+  "command": [
+    "sandbox-exec",
+    "-p",
+    "(version 1)(allow default)(deny network*)(allow network-bind network-inbound (local ip \"localhost:*\"))(allow network-outbound (remote ip \"localhost:*\"))(deny file-write*)(allow file-write* (subpath \"aeneas-factory/docs/gallery/explicit/tmpt_3bmhsm\") (subpath \"/private/tmp\") (subpath \"/private/var/folders\") (literal \"/dev/null\") (literal \"/dev/stdout\") (literal \"/dev/stderr\") (literal \"/dev/tty\") (subpath \"~/Library/Caches\"))(deny file-read-data (subpath \"~\"))(allow file-read-data (subpath \"aeneas-factory/docs/gallery/explicit/tmpt_3bmhsm\") (subpath \"aeneas-factory/aeneas/engines/sonicpi_record.rb\"))",
+    "/Applications/Sonic Pi.app/Contents/Resources/app/server/native/ruby/bin/ruby",
+    "aeneas-factory/aeneas/engines/sonicpi_record.rb",
+    "-o",
+    "tmpt_3bmhsm/raw.wav",
+    "-d",
+    "12.0",
+    "-f",
+    "tmpt_3bmhsm/song.rb",
+    "-w",
+    "tmpt_3bmhsm/work",
+    "-s",
+    "3"
+  ],
+  "checks": {
+    "seconds": 12.0,
+    "rms_dbfs": -18.7,
+    "peak_dbfs": -9.2,
+    "sample_rate": 48000,
+    "channels": 2
+  },
+  "machine": "Darwin arm64",
+  "note": "Made with generative models on this machine. The model licences are as stated on their model cards; this is not legal advice. Credit and disclose as your project or store requires.",
+  "source": "use_bpm 100\nlive_loop :drums do\n  sample :bd_haus, amp: 1.5\n  sleep 0.5\n  sample :sn_dolf, amp: 0.8\n  sleep 0.5\nend\nlive_loop :hats do\n  sample :drum_cymbal_closed, amp: 0.4, rate: 1.2\n  sleep 0.25\nend\nlive_loop :bass do\n  use_synth :tb303\n  play (ring :e2, :e2, :g2, :a2).tick, release: 0.2, cutoff: rrand(60, 100)\n  sleep 0.5\nend\nlive_loop :keys do\n  use_synth :prophet\n  with_fx :reverb, room: 0.8 do\n    play chord(:e4, :minor7), release: 1.5, amp: 0.4\n  end\n  sleep 2\nend\n",
+  "seed": 3,
+  "output_sha256": "1706031eb05c32ff2035a83226e77c6299e970f6e992c0ed0332627112af449d",
+  "embedded_in_file": true
+}

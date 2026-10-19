@@ -76,10 +76,16 @@ def svg(source, out, width=None, ctx=None):
                        "image", tags="svg")
 
 
-def music(source, out, format="abc", master=True, ctx=None):
+SONIC_PI_MAX_SECONDS = 180
+
+
+def music(source, out, format="abc", master=True, seconds=None, seed=None, ctx=None):
     """Music from notation, rendered with FluidSynth and the GeneralUser GS SoundFont.
     format "abc": ABC notation. format "notes": JSON {"tempo": 120, "tracks": [{"program": 0, "drums": false,
-    "notes": [[pitch, start_beat, length_beats, velocity], ...]}]} (General MIDI programs; drums on channel 10)."""
+    "notes": [[pitch, start_beat, length_beats, velocity], ...]}]} (General MIDI programs; drums on channel 10).
+    format "sonic-pi": Sonic Pi code, rendered for `seconds` (see sonic_pi)."""
+    if format == "sonic-pi":
+        return sonic_pi(source, out, seconds=seconds or 16, seed=seed, master=master, ctx=ctx)
     ctx = ctx or ops.Ctx()
     out = ops._out(out, ".wav")
     pol = policy.check_models(["generaluser-gs"], out)
@@ -114,6 +120,43 @@ def music(source, out, format="abc", master=True, ctx=None):
                   model_ids=["generaluser-gs"], found=found) | {"policy": pol}
     res = ops._finish(ctx, out, rec, "audio", tags="music")
     res["midi"] = str(midi)
+    res["waveform"] = str(post.waveform_png(out, out.with_name(out.stem + "_wave.png")))
+    return res
+
+
+def sonic_pi(source, out, seconds=16, seed=None, master=True, ctx=None):
+    """Sonic Pi code (live_loop, synths, samples, FX) rendered headless for `seconds`, in real time, nothing
+    played aloud. Sonic Pi code is a Ruby program, so it runs in a tighter sandbox than notation: network
+    only on this machine's loopback (Sonic Pi's own parts talk over it), no reading anything in the home
+    folder but its scratch folder, writes only there. The bundled samples are CC0."""
+    ctx = ctx or ops.Ctx()
+    out = ops._out(out, ".wav")
+    seconds = float(seconds)
+    if not 0.5 <= seconds <= SONIC_PI_MAX_SECONDS:
+        raise EngineError(f"seconds must be between 0.5 and {SONIC_PI_MAX_SECONDS}")
+    if not explicit.locate("sonic-pi"):
+        raise EngineError("Sonic Pi is not installed: brew install --cask sonic-pi (or make explicit)")
+    started = provenance.datetime.datetime.now().astimezone()
+    with tempfile.TemporaryDirectory(dir=out.parent) as tmp:
+        t = Path(tmp)
+        (t / "song.rb").write_text(source)
+        args = ["-o", str(t / "raw.wav"), "-d", str(seconds), "-f", str(t / "song.rb"), "-w", str(t / "work")]
+        if seed is not None:
+            args += ["-s", str(int(seed))]
+        ctx.progress(0.1, f"Sonic Pi: booting, then {seconds:g} s of music in real time")
+        cmd = explicit.command("sonic-pi", args, sandbox_dir=tmp, loopback=True, readable=[str(explicit.SONIC_PI_RECORD)])
+        ctx.runner.run(cmd, out.with_name(out.name + ".log"), env=explicit.env(), cwd=tmp)
+        raw = t / "raw.wav"
+        if master:
+            ctx.runner.run(post.loudness_command(raw, out, trim=False), out.with_name(out.name + ".log"))
+        else:
+            shutil.move(str(raw), out)
+    found = checks.audio(out)
+    rec = _record(out, f"music (Sonic Pi {explicit.sonic_pi_version()})", source, cmd, started,
+                  {"format": "sonic-pi", "seconds": seconds, "seed": seed, "samples": "Sonic Pi's bundled samples (CC0)",
+                   "mastered": "loudness -18 LUFS, peak -1 dBTP" if master else None}, found=found)
+    rec["seed"] = seed
+    res = ops._finish(ctx, out, rec, "audio", tags="music sonic-pi")
     res["waveform"] = str(post.waveform_png(out, out.with_name(out.stem + "_wave.png")))
     return res
 

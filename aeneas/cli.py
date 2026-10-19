@@ -311,7 +311,8 @@ def cmd_svg(a):
 
 
 def cmd_music(a):
-    _print(_run_op(a, "music", dict(source=_src(a), format=a.format, out=_p(a.out), master=not a.raw)))
+    extra = dict(seconds=a.seconds, seed=a.seed) if a.format == "sonic-pi" else {}
+    _print(_run_op(a, "music", dict(source=_src(a), format=a.format, out=_p(a.out), master=not a.raw, **extra)))
 
 
 def cmd_dialogue(a):
@@ -415,9 +416,11 @@ def main(argv=None):
     p.add_argument("source"); p.add_argument("-o", "--out", required=True); p.add_argument("--width", type=int)
     p.add_argument("--local", action="store_true"); p.set_defaults(func=cmd_svg)
 
-    p = sub.add_parser("music", help="music from ABC notation or a JSON note list, General MIDI instruments, mastered")
-    p.add_argument("source", help="ABC text or a .abc/.json file"); p.add_argument("-o", "--out", required=True)
-    p.add_argument("--format", choices=["abc", "notes"], default="abc")
+    p = sub.add_parser("music", help="music from ABC notation, a JSON note list, or Sonic Pi code; mastered")
+    p.add_argument("source", help="ABC text or a .abc/.json/.rb file"); p.add_argument("-o", "--out", required=True)
+    p.add_argument("--format", choices=["abc", "notes", "sonic-pi"], default="abc")
+    p.add_argument("--seconds", type=float, default=16, help="sonic-pi: how long to record (real time)")
+    p.add_argument("--seed", type=int, help="sonic-pi: makes random choices repeatable")
     p.add_argument("--raw", action="store_true", help="no loudness normalisation")
     p.add_argument("--local", action="store_true"); p.set_defaults(func=cmd_music)
 
