@@ -26,7 +26,8 @@ ALIASES = {"cc0": "CC0-1.0", "cc0-1.0": "CC0-1.0", "mit": "MIT", "apache-2.0": "
            "cc-by-3.0": "CC-BY-3.0", "cc by 3.0": "CC-BY-3.0", "bsd-3-clause": "BSD-3-Clause",
            "public domain": "Public-Domain", "public-domain": "Public-Domain", "pd": "Public-Domain",
            "cc-by-sa-4.0": "CC-BY-SA-4.0", "cc by-sa 4.0": "CC-BY-SA-4.0", "cc-by-nc-4.0": "CC-BY-NC-4.0",
-           "openrail++": "LicenseRef-OpenRAIL++-M", "dinov3": "LicenseRef-DINOv3"}
+           "openrail++": "LicenseRef-OpenRAIL++-M", "dinov3": "LicenseRef-DINOv3",
+           "generaluser gs": "LicenseRef-GeneralUser-GS-2.0"}
 
 
 class PolicyError(Exception):

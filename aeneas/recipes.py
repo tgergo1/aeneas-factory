@@ -32,7 +32,8 @@ from .policy import project_root
 
 PLACEHOLDER = re.compile(r"\{([a-zA-Z_][\w]*)(?:\.([\w]+))?\}")
 OUT_ARGS = {"image": ".png", "edit": ".png", "texture": ".png", "upscale": ".png", "model3d": ".glb",
-            "cleanup": ".glb", "sfx": ".wav", "speech": ".wav", "matte": ".png", "comfy_image": ".png"}
+            "cleanup": ".glb", "sfx": ".wav", "speech": ".wav", "matte": ".png", "comfy_image": ".png",
+            "diagram": ".png", "svg": ".png", "music": ".wav", "dialogue": ".json"}
 
 
 class RecipeError(Exception):

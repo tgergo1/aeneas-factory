@@ -298,6 +298,24 @@ def cmd_service(a):
                   f"  {j['message']}")
 
 
+def cmd_tools(a):
+    from . import explicit
+    if a.action == "list":
+        for t in explicit.listing():
+            print(f"{'✓' if t['installed'] else '✗'} {t['name']:15} {t['category']:8} {t['licence'][:26]:26}  {t['purpose']}")
+    elif a.action == "check":
+        from . import explicit_check
+        results, d = explicit_check.check(a.names, a.keep)
+        n = {s: sum(1 for v in results.values() if v[0] == s) for s in ("PASS", "FAIL", "SKIP")}
+        print(f"\n{n['PASS']} passed, {n['FAIL']} failed, {n['SKIP']} skipped" + (f"; outputs in {d}" if a.keep else ""))
+        sys.exit(1 if n["FAIL"] else 0)
+
+
+def cmd_tool(a):
+    from . import explicit
+    sys.exit(explicit.run(a.name, a.extra, sandbox_dir=a.sandbox).returncode)
+
+
 def main(argv=None):
     argv = list(sys.argv[1:] if argv is None else argv)
     extra = []
@@ -367,6 +385,15 @@ def main(argv=None):
     p.add_argument("--force", action="store_true"); p.add_argument("--accept", action="append", default=[],
                                                                    help="accept a licence, e.g. --accept dinov3")
     p.set_defaults(func=cmd_models)
+
+    p = sub.add_parser("tools", help="explicit tools (code in, asset out): list, check [NAME...]")
+    p.add_argument("action", choices=["list", "check"]); p.add_argument("names", nargs="*"); p.add_argument("--keep")
+    p.set_defaults(func=cmd_tools)
+
+    p = sub.add_parser("tool", help="run one explicit tool with the right environment: aen tool NAME [--sandbox DIR] -- args")
+    p.add_argument("name"); p.add_argument("--sandbox", metavar="DIR",
+                                           help="no network; writes only inside DIR (and temp folders)")
+    p.set_defaults(func=cmd_tool)
 
     p = sub.add_parser("check", help="health check")
     p.add_argument("--quick", action="store_true"); p.add_argument("--full", action="store_true")

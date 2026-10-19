@@ -147,3 +147,5 @@ import urllib.error  # noqa: E402
 import urllib.parse  # noqa: E402
 
 ops.OPS.update({"speech": speech, "matte": matte, "comfy_image": comfy_image})
+
+from . import explicit_ops  # noqa: E402,F401  (diagram, svg, music, dialogue)

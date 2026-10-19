@@ -529,6 +529,33 @@
           "url": "https://huggingface.co/mlx-community/Kokoro-82M-bf16/resolve/a71e4d38b236d968966a2002c4c895dbd12b1c3c/voices/bm_george.safetensors"
         }
       ]
+    },
+    {
+      "id": "generaluser-gs",
+      "name": "GeneralUser GS 2.0.3 (SoundFont)",
+      "group": "music",
+      "default": false,
+      "summary": "General MIDI instrument bank: turns MIDI into audio with FluidSynth (aen music)",
+      "capabilities": [
+        "midi-to-audio"
+      ],
+      "command": "aen tool fluidsynth / aen music",
+      "licence": "GeneralUser GS License v2.0",
+      "spdx": [
+        "LicenseRef-GeneralUser-GS-2.0"
+      ],
+      "commercial_output": "the licence allows music made with it to be used without restriction, commercially too; its author cannot vouch for every sample's origin if the bank itself ships inside commercial software (not legal advice)",
+      "upstream": "https://github.com/mrbumpy409/GeneralUser-GS",
+      "note": "A sample bank, not a model. Licence: documentation/LICENSE.txt in the upstream repository.",
+      "path": "models/generaluser-gs",
+      "files": [
+        {
+          "path": "GeneralUser-GS.sf2",
+          "bytes": 32319396,
+          "sha256": "9575028c7a1f589f5770fccc8cff2734566af40cd26ed836944e9a5152688cfe",
+          "url": "https://raw.githubusercontent.com/mrbumpy409/GeneralUser-GS/684543d5e5efaef08d02be50dcda8d552478fa60/GeneralUser-GS.sf2"
+        }
+      ]
     }
   ]
 }

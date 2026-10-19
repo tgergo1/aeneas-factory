@@ -4,7 +4,7 @@ import pytest
 
 from aeneas import policy, recipes, registry, styles
 
-PINNED = re.compile(r"https://huggingface\.co/[^/]+/[^/]+/resolve/[0-9a-f]{40}/|https://github\.com/[^/]+/[^/]+/releases/download/|https://dl\.fbaipublicfiles\.com/")
+PINNED = re.compile(r"https://huggingface\.co/[^/]+/[^/]+/resolve/[0-9a-f]{40}/|https://github\.com/[^/]+/[^/]+/releases/download/|https://raw\.githubusercontent\.com/[^/]+/[^/]+/[0-9a-f]{40}/|https://dl\.fbaipublicfiles\.com/")
 
 
 def test_register_is_complete_and_pinned():

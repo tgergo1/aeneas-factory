@@ -7,6 +7,10 @@ ROOT = Path(os.environ.get("AEN_HOME", Path(__file__).resolve().parent.parent)).
 STATE = Path(os.environ.get("AEN_STATE", Path.home() / ".aeneas")).expanduser()
 HOME = str(Path.home())
 
+# Services started by launchd (login) get a minimal PATH without Homebrew; the tools live there.
+_EXTRA_PATH = ["/opt/homebrew/bin", "/opt/homebrew/sbin", "/usr/local/bin"]
+os.environ["PATH"] = os.pathsep.join(dict.fromkeys(os.environ.get("PATH", "/usr/bin:/bin").split(os.pathsep) + _EXTRA_PATH))
+
 TOOLS = ROOT / "tools"
 SD_CLI = TOOLS / "stable-diffusion.cpp/build/bin/sd-cli"
 TRELLIS_CLI = TOOLS / "trellis.cpp/build/trellis-cli"

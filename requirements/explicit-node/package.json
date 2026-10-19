@@ -1,0 +1,20 @@
+{
+  "name": "aeneas-explicit-node",
+  "private": true,
+  "description": "Explicit (code-driven) creative tools, Node side, for aeneas-factory (`make explicit`). No model weights.",
+  "dependencies": {
+    "gltfpack": "*",
+    "gltf-validator": "*",
+    "inkjs": "*",
+    "@mermaid-js/mermaid-cli": "*",
+    "vega": "*",
+    "vega-lite": "*",
+    "vega-cli": "*",
+    "p5": "*",
+    "three": "*"
+  },
+  "allowScripts": {
+    "puppeteer@25.14.0": true,
+    "canvas@3.2.3": true
+  }
+}

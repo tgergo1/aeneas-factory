@@ -32,7 +32,7 @@ ACCEPT_FLAGS  := $(foreach a,$(ACCEPT),--accept $(a))
 
 .PHONY: help install all prereqs factory tools sd trellis moss scoring matte speech comfyui comfyui-run \
         models models-image models-3d models-sound models-scoring models-upscale models-matte models-speech \
-        models-extras extras check check-quick verify list test service-start service-stop autostart autostart-off mcp-info \
+        models-extras extras explicit check check-quick verify list test service-start service-stop autostart autostart-off mcp-info \
         clean-tools distclean
 
 help: ## Show this list
@@ -104,6 +104,16 @@ tools/kokoro/.venv/.stamp: requirements/speech.txt
 	uv pip install --quiet --python tools/kokoro/.venv/bin/python --require-hashes -r requirements/speech.txt
 	@touch $@
 extras: scoring matte speech ## All optional envs (scoring, matte, speech)
+
+explicit: factory ## Explicit tools: code and text in, assets out (Homebrew, Python, Node, .NET, SoundFont; no model weights)
+	brew bundle --file=Brewfile --no-upgrade
+	uv venv --quiet --allow-existing --python $(PYTHON_VERSION) tools/explicit/.venv
+	UV_HTTP_TIMEOUT=180 uv pip install --quiet --python tools/explicit/.venv/bin/python --require-hashes -r requirements/explicit.txt
+	mkdir -p tools/explicit/node && cp requirements/explicit-node/package.json requirements/explicit-node/package-lock.json tools/explicit/node/
+	cd tools/explicit/node && PUPPETEER_CACHE_DIR="$$PWD/.cache/puppeteer" npm ci --no-audit --no-fund
+	[ -x tools/explicit/dotnet/ysc ] || dotnet tool install YarnSpinner.Console --version 3.2.2 --tool-path tools/explicit/dotnet
+	$(AEN) models download generaluser-gs
+	$(AEN) tools check
 
 comfyui: factory ## Optional: ComfyUI as an engine and a UI, sharing models/ (about 2 GB)
 	@[ -d tools/ComfyUI/.git ] || git clone --filter=blob:none $(COMFY_REPO) tools/ComfyUI

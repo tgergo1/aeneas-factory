@@ -336,6 +336,7 @@ def autostart_plist():
         "ProgramArguments": [str(ROOT / "bin" / "aen"), "serve", "--idle-exit", "0"],
         "RunAtLoad": True,
         "KeepAlive": {"SuccessfulExit": False},  # restart after a crash, not after a clean stop
+        "EnvironmentVariables": {"PATH": "/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"},
         "ProcessType": "Background",
         "LowPriorityIO": True,
         "StandardOutPath": str(STATE / "service.log"),

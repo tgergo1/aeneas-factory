@@ -113,6 +113,24 @@ Tools: `capabilities`, `generate_image`, `edit_image`, `make_texture`, `image_to
 | `aen policy init / show` · `aen style list / show` | Licence policy · style packs |
 | `aen service start / status / stop / jobs / autostart on\|off` · `aen mcp` | The factory service (and starting it at login) · the MCP server on stdio |
 | `aen check` | Health check: tools, every model file, and a real job through each generator |
+| `aen tools list / check` · `aen tool NAME -- args` | The explicit tools: list, prove each works, run one |
+
+## Explicit tools: code and text in, assets out
+
+Beyond the models, the factory installs 29 tools that turn code or text into exact, editable assets, with no model weights: `make explicit` (Homebrew, a locked Python environment, locked Node packages, Yarn Spinner, and the GeneralUser GS SoundFont). `aen tools check` makes something real with each and checks it.
+
+| Area | Tools |
+|---|---|
+| Images and vector | ImageMagick, resvg, rsvg-convert, OpenCV, vtracer (raster to SVG), coloraide (palettes, contrast), fontTools (fonts) |
+| Diagrams and charts | Graphviz, D2, Mermaid, Vega-Lite |
+| Music | ABC notation (abc2midi), music21, pretty_midi, mido, LilyPond, FluidSynth with GeneralUser GS |
+| Sound design | Csound, SuperCollider, Faust, sox, pedalboard |
+| Procedural | moderngl (GLSL shaders offscreen), opensimplex noise, Taichi simulations |
+| 3D | OpenSCAD, build123d, trimesh, xatlas, pymeshlab, gltfpack, glTF-Validator, Basis Universal, COLMAP, Blender (QuadriFlow, Rigify) |
+| Physics and motion | pymunk, MuJoCo, Manim |
+| Levels and dialogue | Tiled and tmxrasterizer, Godot (headless), Ink (inkjs), Yarn Spinner |
+
+Agents get four of them as MCP tools that take text (`render_diagram`, `render_svg`, `compose_music`, `compile_dialogue`), sandboxed and recorded with their source; the rest run as `aen tool NAME [--sandbox DIR] -- args`. FontForge was left out because Homebrew disabled it (it fails macOS Gatekeeper); fontTools covers fonts.
 
 ## Recipes, styles, policy and the library
 
@@ -153,6 +171,7 @@ ComfyUI uses the same GGUF files as `sd-cli`. The factory ships a small ComfyUI 
 | SigLIP base, patch 16, 224 px | scoring (optional) | 816 MB | Scores how well an image matches its prompt; image search by meaning | Apache-2.0. | [huggingface.co/google/siglip-base-patch16-224](https://huggingface.co/google/siglip-base-patch16-224) |
 | CLAP HTSAT (unfused) | scoring (optional) | 618 MB | Scores how well a sound matches its description | Apache-2.0. | [huggingface.co/laion/clap-htsat-unfused](https://huggingface.co/laion/clap-htsat-unfused) |
 | Kokoro 82M (MLX bf16) | speech (optional) | 330 MB | Text to speech, English voices; fast and small | Apache-2.0. | [huggingface.co/hexgrad/Kokoro-82M](https://huggingface.co/hexgrad/Kokoro-82M) |
+| GeneralUser GS 2.0.3 (SoundFont) | music (optional) | 32 MB | General MIDI instrument bank: turns MIDI into audio with FluidSynth (aen music) | GeneralUser GS License v2.0. | [github.com/mrbumpy409/GeneralUser-GS](https://github.com/mrbumpy409/GeneralUser-GS) |
 
 The four core models total **40.5 GB**; the optional ones **2.1 GB**. Every file's URL (pinned to a commit or release), size and SHA-256 are in [`models.json`](models.json).
 <!-- models:end -->
@@ -208,7 +227,7 @@ The service listens on 127.0.0.1 only. Every request needs the token in `~/.aene
 ## Development
 
 ```bash
-make test           # 32 tests, no models or GPU needed
+make test           # 38 tests, no models or GPU needed
 python scripts/gen_docs.py --check    # the docs agree with models.json
 .venv/bin/python scripts/mcp_smoke.py ~/some/project    # the MCP path end to end
 ```

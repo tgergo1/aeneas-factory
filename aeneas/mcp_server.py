@@ -28,9 +28,11 @@ mcp = MCPServer(
 )
 
 EXT = {"image": ".png", "edit": ".png", "texture": ".png", "upscale": ".png", "model3d": ".glb", "sfx": ".wav",
-       "speech": ".wav", "matte": ".png", "comfy_image": ".png"}
+       "speech": ".wav", "matte": ".png", "comfy_image": ".png", "diagram": ".png", "svg": ".png", "music": ".wav",
+       "dialogue": ".json"}
 SUBDIR = {"image": "images", "edit": "images", "texture": "textures", "upscale": "images", "model3d": "models",
-          "sfx": "sounds", "speech": "speech", "matte": "images", "comfy_image": "images"}
+          "sfx": "sounds", "speech": "speech", "matte": "images", "comfy_image": "images", "diagram": "diagrams",
+          "svg": "images", "music": "music", "dialogue": "dialogue"}
 
 
 def _client():
@@ -168,6 +170,53 @@ def remove_background(image_path: str, project_dir: str, name: str = "", wait_se
     """Cut the subject out: a PNG with a transparent background (BiRefNet)."""
     return _submit("matte", {"src": image_path, "out": _out("matte", project_dir, name,
                                                            Path(image_path).stem + "-cutout")}, wait_seconds)
+
+
+@mcp.tool()
+def explicit_tools() -> str:
+    """The explicit (code- and text-driven) tools installed here, beyond the generative models: image editing,
+    SVG, diagrams, music and sound design as code, CAD, mesh processing, physics, animation, levels, dialogue.
+    The text-based ones have their own tools here (render_diagram, render_svg, compose_music, compile_dialogue);
+    the rest are run from a shell with `aen tool NAME -- args` (see the factory's AGENTS.md)."""
+    from . import explicit
+    return json.dumps(explicit.listing(), indent=1)
+
+
+@mcp.tool()
+def render_diagram(source: str, project_dir: str, kind: str = "graphviz", name: str = "", svg: bool = False,
+                   wait_seconds: int = 60) -> list:
+    """A diagram or chart from text. kind: graphviz (DOT), d2, mermaid, or vega-lite (a JSON spec). PNG by default,
+    SVG with svg=true. The source is kept in the provenance so it can be edited and rendered again."""
+    out = _out("diagram", project_dir, name, f"{kind}-diagram")
+    if svg:
+        out = str(Path(out).with_suffix(".svg"))
+    return _submit("diagram", {"source": source, "kind": kind, "out": out}, wait_seconds)
+
+
+@mcp.tool()
+def render_svg(svg: str, project_dir: str, name: str = "", width: int = 0, wait_seconds: int = 60) -> list:
+    """Render an SVG document you write (icons, logos, UI art, badges) to PNG with resvg; width scales it."""
+    return _submit("svg", {"source": svg, "out": _out("svg", project_dir, name, "svg"), "width": width or None},
+                   wait_seconds)
+
+
+@mcp.tool()
+def compose_music(source: str, project_dir: str, format: str = "abc", name: str = "", master: bool = True,
+                  wait_seconds: int = 90) -> list:
+    """Music from notation, rendered with General MIDI instruments (GeneralUser GS SoundFont), mastered to -18 LUFS.
+    format "abc": ABC notation (use %%MIDI program N lines for instruments). format "notes": JSON
+    {"tempo": 120, "tracks": [{"program": 0, "drums": false, "notes": [[pitch, start_beat, length_beats, velocity]]}]}.
+    Returns the WAV (with a waveform picture) and the MIDI."""
+    return _submit("music", {"source": source, "format": format, "master": master,
+                             "out": _out("music", project_dir, name, "music")}, wait_seconds)
+
+
+@mcp.tool()
+def compile_dialogue(source: str, project_dir: str, kind: str = "ink", name: str = "", wait_seconds: int = 60) -> list:
+    """Compile branching dialogue for a game: kind "ink" (Ink, to JSON for inkjs or ink-unity) or "yarn"
+    (Yarn Spinner, to .yarnc). Compile errors come back as the error, with line numbers."""
+    return _submit("dialogue", {"source": source, "kind": kind, "out": _out("dialogue", project_dir, name, kind)},
+                   wait_seconds)
 
 
 @mcp.tool()

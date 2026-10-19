@@ -1,0 +1,24 @@
+# Explicit (code-driven) creative tools, Python side: tools/explicit/.venv (`make explicit`).
+# No model weights. Licences as their projects state.
+numpy
+pillow
+opencv-python-headless   # Apache-2.0: image processing
+coloraide                # MIT: colour science, palettes, contrast
+fonttools                # MIT: build and edit fonts (pixel fonts, icon fonts)
+music21                  # BSD-3: music theory, composition, MIDI and MusicXML
+pretty_midi              # MIT: MIDI writing and analysis
+mido                     # MIT: MIDI files and messages
+pedalboard               # GPL-3.0: audio effects (reverb, EQ, compression) on files
+opensimplex              # MIT: noise for procedural textures and terrain
+scipy                    # BSD-3
+trimesh                  # MIT: mesh I/O, repair, conversion
+xatlas                   # MIT: UV unwrapping
+pymeshlab                # GPL-3.0: mesh processing, remeshing, simplification
+build123d                # Apache-2.0: parametric CAD as Python code
+moderngl                 # MIT: offscreen OpenGL, GLSL shaders to images
+vtracer                  # MIT: raster to SVG tracing
+taichi                   # Apache-2.0: fast simulation (erosion, particles, fluids)
+pymunk                   # MIT: 2D physics (Chipmunk2D)
+mujoco                   # Apache-2.0: rigid-body physics
+tracery                  # Apache-2.0: text grammars (names, descriptions)
+manim                    # MIT: animation as code (explainers, titles, UI motion)
