@@ -5,17 +5,19 @@ import * as path from "path";
 import * as vscode from "vscode";
 import { Factory, activeResource, errorText } from "./context";
 import { blenderArgs } from "./core/blender";
+import { factoryPython } from "./core/service";
 
-const BLENDER = ["/Applications/Blender.app/Contents/MacOS/Blender"];
-const GIMP = ["/Applications/GIMP.app", "/Applications/GIMP-3.app", "/Applications/GIMP-2.10.app"];
-const GODOT = ["/Applications/Godot.app/Contents/MacOS/Godot", "/Applications/Godot_mono.app/Contents/MacOS/Godot"];
-
-function first(paths: string[]): string | undefined {
-  return paths.find((p) => fs.existsSync(p));
+/** Where the factory finds an app on this machine (`aen where NAME`), so the paths live in one place. */
+function where(factory: Factory, name: string): Promise<string | undefined> {
+  const home = factory.factoryPath();
+  if (!home) return Promise.resolve(undefined);
+  return new Promise((resolve) =>
+    execFile(factoryPython(home), ["-m", "aeneas", "where", name], { cwd: home, timeout: 20_000, windowsHide: true },
+      (err, stdout) => resolve(err ? undefined : stdout.trim() || undefined)));
 }
 
 function detached(cmd: string, args: string[]) {
-  const child = spawn(cmd, args, { detached: true, stdio: "ignore" });
+  const child = spawn(cmd, args, { detached: true, stdio: "ignore", windowsHide: false });
   child.on("error", (e) => vscode.window.showErrorMessage(`Could not start ${path.basename(cmd)}: ${e.message}`));
   child.unref();
 }
@@ -24,27 +26,28 @@ function target(uri?: vscode.Uri): string | undefined {
   return (uri ?? activeResource())?.fsPath;
 }
 
-export function openInBlender(uri?: vscode.Uri) {
+export async function openInBlender(factory: Factory, uri?: vscode.Uri) {
   const file = target(uri);
-  const blender = first([process.env.AEN_BLENDER ?? "", ...BLENDER]);
   if (!file) return;
-  if (!blender) return void vscode.window.showWarningMessage("Blender was not found in /Applications (or AEN_BLENDER).");
+  const blender = process.env.AEN_BLENDER || (await where(factory, "blender"));
+  if (!blender) return void vscode.window.showWarningMessage("Blender was not found (install it from blender.org, or set AEN_BLENDER).");
   detached(blender, blenderArgs(file));
 }
 
-export function openInGimp(uri?: vscode.Uri) {
+export async function openInGimp(factory: Factory, uri?: vscode.Uri) {
   const file = target(uri);
-  const gimp = first(GIMP);
   if (!file) return;
-  if (!gimp) return void vscode.window.showWarningMessage("GIMP was not found in /Applications.");
-  detached("/usr/bin/open", ["-a", gimp, file]);
+  const gimp = await where(factory, "gimp-app");
+  if (!gimp) return void vscode.window.showWarningMessage("GIMP was not found (install it from gimp.org).");
+  if (process.platform === "darwin") detached("/usr/bin/open", ["-a", gimp, file]);
+  else detached(gimp, [file]);
 }
 
-export function openInGodot(uri?: vscode.Uri) {
+export async function openInGodot(factory: Factory, uri?: vscode.Uri) {
   const file = target(uri);
-  const godot = first(GODOT);
   if (!file) return;
-  if (!godot) return void vscode.window.showWarningMessage("Godot was not found in /Applications.");
+  const godot = await where(factory, "godot");
+  if (!godot) return void vscode.window.showWarningMessage("Godot was not found (install it from godotengine.org).");
   let dir = path.dirname(file);
   while (!fs.existsSync(path.join(dir, "project.godot")) && path.dirname(dir) !== dir) dir = path.dirname(dir);
   if (!fs.existsSync(path.join(dir, "project.godot"))) return void vscode.window.showWarningMessage("No project.godot above this file.");
@@ -62,7 +65,7 @@ export async function writeCredits(factory: Factory) {
     const ok = await vscode.window.showWarningMessage("CREDITS.md exists. Replace it with a fresh one from the library?", { modal: true }, "Replace");
     if (ok !== "Replace") return;
   }
-  execFile(path.join(home, "bin", "aen"), ["library", "credits", project, "--write", out], { timeout: 60_000 }, async (err, _stdout, stderr) => {
+  execFile(factoryPython(home), ["-m", "aeneas", "library", "credits", project, "--write", out], { cwd: home, timeout: 60_000, windowsHide: true }, async (err, _stdout, stderr) => {
     if (err) return void vscode.window.showErrorMessage(`Credits: ${stderr.trim() || errorText(err)}`);
     await vscode.commands.executeCommand("vscode.open", vscode.Uri.file(out));
   });

@@ -22,7 +22,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
-from . import __version__, library, ops, recipes, registry, styles
+from . import __version__, host, library, ops, recipes, registry, styles
 from .engines import Cancelled, Runner
 from .paths import FACTORY_PY, ROOT, STATE
 
@@ -320,6 +320,15 @@ def running():
         return None
 
 
+def _spawn(cmd, log=None):
+    """Start the service in the background, detached from this process (and without a window on Windows)."""
+    out = log or open(STATE / "service.log", "a")
+    kw = {"start_new_session": True}
+    if host.WINDOWS:
+        kw = {"creationflags": subprocess.DETACHED_PROCESS | subprocess.CREATE_NEW_PROCESS_GROUP | subprocess.CREATE_NO_WINDOW}
+    subprocess.Popen(cmd, cwd=str(ROOT), stdout=out, stderr=out, stdin=subprocess.DEVNULL, **kw)
+
+
 def ensure_running(wait=30):
     c = running()
     if c:
@@ -327,8 +336,7 @@ def ensure_running(wait=30):
     STATE.mkdir(parents=True, exist_ok=True)
     py = FACTORY_PY if FACTORY_PY.exists() else Path(sys.executable)
     with open(STATE / "service.log", "a") as log:
-        subprocess.Popen([str(py), "-m", "aeneas", "serve"], cwd=str(ROOT), stdout=log, stderr=log,
-                         start_new_session=True)
+        _spawn([str(py), "-m", "aeneas", "serve"], log)
     t = time.time()
     while time.time() - t < wait:
         time.sleep(0.5)
@@ -338,16 +346,31 @@ def ensure_running(wait=30):
     raise RuntimeError(f"the factory service did not start; see {STATE / 'service.log'}")
 
 
-# ---------------------------------------------------------------- start at login (macOS LaunchAgent)
+# ---------------------------------------------------------------- start at login
+# macOS: a LaunchAgent. Linux: a systemd user unit. Windows: a per-user Run entry (no admin, no console window).
+
+SYSTEMD_UNIT = Path(os.environ.get("XDG_CONFIG_HOME", Path.home() / ".config")) / "systemd" / "user" / "aeneas-factory.service"
+WINDOWS_RUN_KEY = r"Software\Microsoft\Windows\CurrentVersion\Run"
+WINDOWS_RUN_NAME = "AeneasFactory"
+
+
+def serve_command(windowless=False):
+    """How a login item starts the service: the factory's Python, the aeneas package, never stopping when idle."""
+    py = FACTORY_PY if FACTORY_PY.exists() else Path(sys.executable)
+    if windowless and host.WINDOWS and py.with_name("pythonw.exe").exists():
+        py = py.with_name("pythonw.exe")
+    return [str(py), "-m", "aeneas", "serve", "--idle-exit", "0"]
+
 
 def autostart_plist():
     import plistlib
     return plistlib.dumps({
         "Label": AGENT_LABEL,
-        "ProgramArguments": [str(ROOT / "bin" / "aen"), "serve", "--idle-exit", "0"],
+        "ProgramArguments": serve_command(),
+        "WorkingDirectory": str(ROOT),
         "RunAtLoad": True,
         "KeepAlive": {"SuccessfulExit": False},  # restart after a crash, not after a clean stop
-        "EnvironmentVariables": {"PATH": "/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"},
+        "EnvironmentVariables": {"PATH": os.pathsep.join(host.EXTRA_PATH + ["/usr/bin", "/bin", "/usr/sbin", "/sbin"])},
         "ProcessType": "Background",
         "LowPriorityIO": True,
         "StandardOutPath": str(STATE / "service.log"),
@@ -355,28 +378,93 @@ def autostart_plist():
     })
 
 
+def systemd_unit():
+    cmd = " ".join(f'"{c}"' if " " in c else c for c in serve_command())
+    path = os.pathsep.join(host.EXTRA_PATH + ["/usr/local/sbin", "/usr/sbin", "/usr/bin", "/sbin", "/bin"])
+    return f"""[Unit]
+Description=Aeneas Factory service (local asset generation)
+
+[Service]
+ExecStart={cmd}
+WorkingDirectory={ROOT}
+Environment=PATH={path}
+Restart=on-failure
+RestartSec=5
+Nice=5
+StandardOutput=append:{STATE / "service.log"}
+StandardError=append:{STATE / "service.log"}
+
+[Install]
+WantedBy=default.target
+"""
+
+
+def _stop_on_demand_service():
+    c = running()
+    if c:  # a service started on demand: replace it with the login one
+        c.request("POST", "/shutdown", {})
+        time.sleep(1)
+
+
 def autostart(on):
-    uid = os.getuid()
-    if on:
-        STATE.mkdir(parents=True, exist_ok=True)
-        AGENT_PLIST.parent.mkdir(parents=True, exist_ok=True)
+    STATE.mkdir(parents=True, exist_ok=True)
+    if host.MACOS:
+        uid = os.getuid()
         subprocess.run(["launchctl", "bootout", f"gui/{uid}/{AGENT_LABEL}"], capture_output=True)
-        c = running()
-        if c:  # a service started on demand: replace it with the login one
-            c.request("POST", "/shutdown", {})
-            time.sleep(1)
+        if not on:
+            AGENT_PLIST.unlink(missing_ok=True)
+            return "off: the service starts on demand and stops after 30 idle minutes"
+        _stop_on_demand_service()
+        AGENT_PLIST.parent.mkdir(parents=True, exist_ok=True)
         AGENT_PLIST.write_bytes(autostart_plist())
         r = subprocess.run(["launchctl", "bootstrap", f"gui/{uid}", str(AGENT_PLIST)], capture_output=True, text=True)
         if r.returncode != 0:
             raise RuntimeError(f"launchctl bootstrap failed: {r.stderr.strip()}")
         return f"on: starts at login and stays running ({AGENT_PLIST})"
-    subprocess.run(["launchctl", "bootout", f"gui/{uid}/{AGENT_LABEL}"], capture_output=True)
-    AGENT_PLIST.unlink(missing_ok=True)
-    return "off: the service starts on demand and stops after 30 idle minutes"
+    if host.LINUX:
+        if not on:
+            subprocess.run(["systemctl", "--user", "disable", "--now", SYSTEMD_UNIT.name], capture_output=True)
+            SYSTEMD_UNIT.unlink(missing_ok=True)
+            subprocess.run(["systemctl", "--user", "daemon-reload"], capture_output=True)
+            return "off: the service starts on demand and stops after 30 idle minutes"
+        _stop_on_demand_service()
+        SYSTEMD_UNIT.parent.mkdir(parents=True, exist_ok=True)
+        SYSTEMD_UNIT.write_text(systemd_unit())
+        subprocess.run(["systemctl", "--user", "daemon-reload"], capture_output=True)
+        r = subprocess.run(["systemctl", "--user", "enable", "--now", SYSTEMD_UNIT.name], capture_output=True, text=True)
+        if r.returncode != 0:
+            raise RuntimeError(f"systemctl --user enable failed (is this a systemd session?): {r.stderr.strip()}")
+        return (f"on: starts at login and stays running ({SYSTEMD_UNIT}); to keep it running after you log out: "
+                "loginctl enable-linger")
+    import winreg  # Windows
+    with winreg.OpenKey(winreg.HKEY_CURRENT_USER, WINDOWS_RUN_KEY, 0, winreg.KEY_SET_VALUE) as key:
+        if not on:
+            try:
+                winreg.DeleteValue(key, WINDOWS_RUN_NAME)
+            except FileNotFoundError:
+                pass
+            return "off: the service starts on demand and stops after 30 idle minutes"
+        _stop_on_demand_service()
+        winreg.SetValueEx(key, WINDOWS_RUN_NAME, 0, winreg.REG_SZ, subprocess.list2cmdline(serve_command(windowless=True)))
+    _spawn(serve_command(windowless=True))
+    return "on: starts at login and stays running (HKCU Run entry AeneasFactory)"
 
 
 def autostart_status():
-    if not AGENT_PLIST.exists():
+    if host.MACOS:
+        if not AGENT_PLIST.exists():
+            return "off (starts on demand, stops after 30 idle minutes)"
+        r = subprocess.run(["launchctl", "print", f"gui/{os.getuid()}/{AGENT_LABEL}"], capture_output=True, text=True)
+        return "on (starts at login)" + ("" if r.returncode == 0 else ", but not loaded right now")
+    if host.LINUX:
+        if not SYSTEMD_UNIT.exists():
+            return "off (starts on demand, stops after 30 idle minutes)"
+        r = subprocess.run(["systemctl", "--user", "is-active", SYSTEMD_UNIT.name], capture_output=True, text=True)
+        return "on (starts at login)" + ("" if r.stdout.strip() == "active" else f", but {r.stdout.strip() or 'not running'} right now")
+    import winreg
+    try:
+        with winreg.OpenKey(winreg.HKEY_CURRENT_USER, WINDOWS_RUN_KEY) as key:
+            winreg.QueryValueEx(key, WINDOWS_RUN_NAME)
+        return "on (starts at login)"
+    except FileNotFoundError:
         return "off (starts on demand, stops after 30 idle minutes)"
-    r = subprocess.run(["launchctl", "print", f"gui/{os.getuid()}/{AGENT_LABEL}"], capture_output=True, text=True)
-    return "on (starts at login)" + ("" if r.returncode == 0 else ", but not loaded right now")

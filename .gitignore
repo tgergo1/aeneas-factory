@@ -15,3 +15,6 @@ __pycache__/
 # trellis.cpp side outputs
 *.ply
 *_base.png
+
+# CI scratch on the self-hosted runner
+.ci/

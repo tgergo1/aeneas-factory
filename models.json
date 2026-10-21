@@ -1,5 +1,5 @@
 {
-  "about": "The models Aeneas Factory downloads. Paths are relative to the repository. Each file is pinned to a Hugging Face commit and checked by SHA-256. `bin/ai-models` reads this file.",
+  "about": "The models Aeneas Factory downloads. Paths are relative to the repository. Each file is pinned to a Hugging Face commit and checked by SHA-256. A model with `platforms` is used only there (macos-arm64, linux, windows, ...); `sound` and `speech` each have one variant per platform.",
   "models": [
     {
       "id": "z-image-turbo",
@@ -279,6 +279,46 @@
       "path": "models/moss-sfx",
       "spdx": [
         "Apache-2.0"
+      ],
+      "platforms": [
+        "macos-arm64"
+      ]
+    },
+    {
+      "id": "moss-sfx-gguf",
+      "name": "MOSS-SoundEffect v2.0 (GGUF BF16, openmoss)",
+      "group": "sound",
+      "default": true,
+      "platforms": [
+        "linux",
+        "windows",
+        "macos-x64"
+      ],
+      "summary": "Sound effects, foley and ambience from a description; 48 kHz, up to 30 s. The same model as moss-sfx, for the openmoss C++ runtime (CUDA, Vulkan, ROCm or CPU)",
+      "capabilities": [
+        "text-to-sound-effects"
+      ],
+      "command": "aen sfx",
+      "licence": "Apache-2.0",
+      "spdx": [
+        "Apache-2.0"
+      ],
+      "commercial_output": "the licence allows it (model card; not legal advice)",
+      "upstream": "https://huggingface.co/OpenMOSS-Team/MOSS-SoundEffect-v2.0",
+      "path": "models/moss-sfx-gguf",
+      "files": [
+        {
+          "path": "moss-soundeffect-2.0.gguf",
+          "bytes": 4069678880,
+          "sha256": "676d3ead6b12e99ecff0a3c29172f0f3571b17834724b19559c4f8572135a8de",
+          "url": "https://huggingface.co/ilintar/moss-soundeffect-gguf/resolve/b5556f201d6287d8cf1a18452d24f285903b82b8/moss-soundeffect-2.0.gguf"
+        },
+        {
+          "path": "moss-soundeffect-2.0.extras.gguf",
+          "bytes": 2985201184,
+          "sha256": "f905b2bb3be6e21908778e3d8ef8b0d06dc419cab1d3bb7613a29dc21d924b64",
+          "url": "https://huggingface.co/ilintar/moss-soundeffect-gguf/resolve/b5556f201d6287d8cf1a18452d24f285903b82b8/moss-soundeffect-2.0.extras.gguf"
+        }
       ]
     },
     {
@@ -527,6 +567,82 @@
           "bytes": 522320,
           "sha256": "a3d9b8995cbbe5536f954b6be2a0f1f312f077118ba0d4d2178fc41dc8306672",
           "url": "https://huggingface.co/mlx-community/Kokoro-82M-bf16/resolve/a71e4d38b236d968966a2002c4c895dbd12b1c3c/voices/bm_george.safetensors"
+        }
+      ],
+      "platforms": [
+        "macos-arm64"
+      ]
+    },
+    {
+      "id": "kokoro-torch",
+      "name": "Kokoro 82M (PyTorch)",
+      "group": "speech",
+      "default": false,
+      "platforms": [
+        "linux",
+        "windows",
+        "macos-x64"
+      ],
+      "summary": "Text to speech, English voices; fast and small, CPU is enough. The same model as kokoro-82m, for the kokoro PyTorch package",
+      "capabilities": [
+        "text-to-speech"
+      ],
+      "command": "aen speech",
+      "licence": "Apache-2.0",
+      "spdx": [
+        "Apache-2.0"
+      ],
+      "commercial_output": "the licence allows it (model card; not legal advice)",
+      "upstream": "https://huggingface.co/hexgrad/Kokoro-82M",
+      "path": "models/kokoro-torch",
+      "files": [
+        {
+          "path": "config.json",
+          "bytes": 2351,
+          "sha256": "5abb01e2403b072bf03d04fde160443e209d7a0dad49a423be15196b9b43c17f",
+          "url": "https://huggingface.co/hexgrad/Kokoro-82M/resolve/f3ff3571791e39611d31c381e3a41a3af07b4987/config.json"
+        },
+        {
+          "path": "kokoro-v1_0.pth",
+          "bytes": 327212226,
+          "sha256": "496dba118d1a58f5f3db2efc88dbdc216e0483fc89fe6e47ee1f2c53f18ad1e4",
+          "url": "https://huggingface.co/hexgrad/Kokoro-82M/resolve/f3ff3571791e39611d31c381e3a41a3af07b4987/kokoro-v1_0.pth"
+        },
+        {
+          "path": "voices/af_heart.pt",
+          "bytes": 523425,
+          "sha256": "0ab5709b8ffab19bfd849cd11d98f75b60af7733253ad0d67b12382a102cb4ff",
+          "url": "https://huggingface.co/hexgrad/Kokoro-82M/resolve/f3ff3571791e39611d31c381e3a41a3af07b4987/voices/af_heart.pt"
+        },
+        {
+          "path": "voices/af_bella.pt",
+          "bytes": 523425,
+          "sha256": "8cb64e02fcc8de0327a8e13817e49c76c945ecf0052ceac97d3081480e8e48d6",
+          "url": "https://huggingface.co/hexgrad/Kokoro-82M/resolve/f3ff3571791e39611d31c381e3a41a3af07b4987/voices/af_bella.pt"
+        },
+        {
+          "path": "voices/am_michael.pt",
+          "bytes": 523435,
+          "sha256": "9a443b79a4b22489a5b0ab7c651a0bcd1a30bef675c28333f06971abbd47bd37",
+          "url": "https://huggingface.co/hexgrad/Kokoro-82M/resolve/f3ff3571791e39611d31c381e3a41a3af07b4987/voices/am_michael.pt"
+        },
+        {
+          "path": "voices/am_adam.pt",
+          "bytes": 523420,
+          "sha256": "ced7e284aba12472891be1da3ab34db84cc05cc02b5889535796dbf2d8b0cb34",
+          "url": "https://huggingface.co/hexgrad/Kokoro-82M/resolve/f3ff3571791e39611d31c381e3a41a3af07b4987/voices/am_adam.pt"
+        },
+        {
+          "path": "voices/bf_emma.pt",
+          "bytes": 523420,
+          "sha256": "d0a423deabf4a52b4f49318c51742c54e21bb89bbbe9a12141e7758ddb5da701",
+          "url": "https://huggingface.co/hexgrad/Kokoro-82M/resolve/f3ff3571791e39611d31c381e3a41a3af07b4987/voices/bf_emma.pt"
+        },
+        {
+          "path": "voices/bm_george.pt",
+          "bytes": 523430,
+          "sha256": "f1bc812213dc59774769e5c80004b13eeb79bd78130b11b2d7f934542dab811b",
+          "url": "https://huggingface.co/hexgrad/Kokoro-82M/resolve/f3ff3571791e39611d31c381e3a41a3af07b4987/voices/bm_george.pt"
         }
       ]
     },

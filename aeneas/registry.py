@@ -24,6 +24,21 @@ def models():
     return load()["models"]
 
 
+def runs_here(m):
+    """A model with `platforms` runs only there: "linux", "windows", "macos", or with the CPU, "macos-arm64"."""
+    from . import host
+    plats = m.get("platforms")
+    return not plats or host.OS in plats or f"{host.OS}-{host.ARCH}" in plats
+
+
+def pick(*ids):
+    """The first of these model ids that runs on this machine (one model, a variant per platform)."""
+    for i in ids:
+        if runs_here(model(i)):
+            return i
+    raise RegistryError(f"none of {', '.join(ids)} runs on this machine")
+
+
 def model(model_id):
     for m in models():
         if m["id"] == model_id:
@@ -72,11 +87,14 @@ def selection(names):
     ids = []
     for n in names:
         if n == "all":
-            ids += [m["id"] for m in models() if m.get("default", True)]
+            ids += [m["id"] for m in models() if m.get("default", True) and runs_here(m)]
         elif n in groups:
-            ids += [m["id"] for m in models() if m["group"] == n]
+            ids += [m["id"] for m in models() if m["group"] == n and runs_here(m)]
         else:
-            ids.append(model(n)["id"])
+            m = model(n)
+            if not runs_here(m):
+                raise RegistryError(f"{n} does not run on this machine (it is for {', '.join(m['platforms'])})")
+            ids.append(m["id"])
     out = []
     for i in ids:
         for r in model(i).get("requires", []) + [i]:
@@ -168,7 +186,7 @@ def verify(ids=(), full=False):
     """[(model_id, state, detail)] with state ok | missing-all | problem."""
     out = []
     for m in models():
-        if ids and m["id"] not in ids:
+        if (ids and m["id"] not in ids) or (not ids and not runs_here(m)):
             continue
         states = [(f, file_state(m, f, full)) for f in m["files"]]
         problems = [(f, s) for f, s in states if s != "ok"]

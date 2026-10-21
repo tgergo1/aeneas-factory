@@ -1,6 +1,7 @@
-# Release the editor extension: push a tag vscode-v<version> (matching editors/vscode/package.json).
-# Always: a GitHub release with the .vsix. With the secrets VSCE_PAT and OVSX_PAT: the VS Code
-# Marketplace and Open VSX too (without them those steps say so and are skipped).
+# Release the editor extension from the owner's self-hosted Linux runner: push a tag vscode-v<version>
+# (matching editors/vscode/package.json). Always: a GitHub release with the .vsix (one package for every OS).
+# With the secrets VSCE_PAT and OVSX_PAT: the VS Code Marketplace and Open VSX too (skipped without them).
+# Needs the GitHub CLI (gh) on the runner. Tags need write access, so forks cannot start this.
 name: Release VS Code extension
 
 on:
@@ -12,19 +13,19 @@ permissions:
 
 jobs:
   release:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64]
+    timeout-minutes: 30
     defaults:
       run:
         working-directory: editors/vscode
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
         with:
-          lfs: true
-      - uses: actions/setup-node@v4
+          lfs: false
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020  # v4.4.0
         with:
           node-version: 22
-          cache: npm
-          cache-dependency-path: editors/vscode/package-lock.json
       - name: The tag matches package.json
         run: |
           want="vscode-v$(node -p "require('./package.json').version")"
@@ -32,7 +33,7 @@ jobs:
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - run: npm run typecheck
       - run: npx tsc -p tsconfig.test.json && npm run test:unit
-      - name: Package (macOS, Apple Silicon)
+      - name: Package
         run: |
           npm run package
           mv aeneas-factory.vsix "aeneas-factory-${GITHUB_REF_NAME#vscode-v}.vsix"
@@ -40,12 +41,13 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          command -v gh >/dev/null || { echo "the GitHub CLI (gh) is needed on the runner"; exit 1; }
           v="${GITHUB_REF_NAME#vscode-v}"
-          gh release create "$GITHUB_REF_NAME" "aeneas-factory-$v.vsix" --verify-tag --prerelease \
+          gh release create "$GITHUB_REF_NAME" "aeneas-factory-$v.vsix" --repo "$GITHUB_REPOSITORY" --verify-tag --prerelease \
             --title "VS Code extension $v" \
-            --notes "Aeneas Factory for VS Code, Cursor, Windsurf and VSCodium, version $v (preview). Needs Aeneas Factory 0.4 or later on an Apple Silicon Mac.
+            --notes "Aeneas Factory for VS Code, Cursor, Windsurf and VSCodium, version $v (preview), for macOS, Linux and Windows. Needs Aeneas Factory 0.5 or later.
 
-          Install: download aeneas-factory-$v.vsix, then in the editor run **Extensions: Install from VSIX…**, or: \`code --install-extension aeneas-factory-$v.vsix\`. See [editors/vscode/README.md](https://github.com/tgergo1/aeneas-factory/blob/$GITHUB_REF_NAME/editors/vscode/README.md)."
+          Install: download aeneas-factory-$v.vsix, then in the editor run **Extensions: Install from VSIX…**, or: \`code --install-extension aeneas-factory-$v.vsix\`. See [editors/vscode/README.md](https://github.com/$GITHUB_REPOSITORY/blob/$GITHUB_REF_NAME/editors/vscode/README.md)."
       - name: VS Code Marketplace
         env:
           VSCE_PAT: ${{ secrets.VSCE_PAT }}

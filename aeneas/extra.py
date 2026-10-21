@@ -1,4 +1,4 @@
-"""Optional operations that need extra installs: speech (Kokoro on MLX: `make speech`), background
+"""Optional operations that need extra installs: speech (Kokoro, MLX or PyTorch: `make speech`), background
 removal (rembg with BiRefNet: `make matte`), and images through ComfyUI (`make comfyui`).
 They register themselves in ops.OPS."""
 import json
@@ -20,29 +20,38 @@ VOICES = ["af_heart", "af_bella", "am_michael", "am_adam", "bf_emma", "bm_george
 # ---------------------------------------------------------------- speech (Kokoro)
 
 def speech(text, out, voice="af_heart", speed=1.0, ctx=None):
+    """Kokoro: through mlx-audio on Apple Silicon (kokoro-82m), through the PyTorch kokoro package elsewhere
+    (kokoro-torch, CPU is enough). Same model and voices either way."""
     ctx = ctx or ops.Ctx()
     out = ops._out(out, ".wav")
     if not KOKORO_PY.exists():
-        raise EngineError("The speech environment is not set up. Run: make speech")
-    registry.require("kokoro-82m")
+        raise EngineError("The speech environment is not set up. Run: make speech  (python install.py speech)")
+    mid = registry.pick("kokoro-82m", "kokoro-torch")
+    registry.require(mid)
     if voice not in VOICES:
         raise EngineError(f"voice must be one of {', '.join(VOICES)} (others: add them to models.json)")
-    pol = policy.check_models(["kokoro-82m"], out)
-    model_dir = registry.model_path("kokoro-82m")
+    pol = policy.check_models([mid], out)
+    model_dir = registry.model_path(mid)
     lang = voice[0]  # a: American English, b: British English
     started = provenance.datetime.datetime.now().astimezone()
     with tempfile.TemporaryDirectory() as tmp:
-        cmd = [KOKORO_PY, "-m", "mlx_audio.tts.generate", "--model", model_dir, "--text", text,
-               "--voice", model_dir / "voices" / f"{voice}.safetensors", "--lang_code", lang, "--speed", str(speed),
-               "--file_prefix", Path(tmp) / "speech", "--audio_format", "wav", "--join_audio"]
         ctx.progress(0.1, f"speech: {voice}")
-        ctx.runner.run(cmd, out.with_name(out.name + ".log"), env={"HF_HUB_OFFLINE": "1"})
-        made = sorted(Path(tmp).glob("speech*.wav"))
-        if not made:
-            raise EngineError("mlx-audio wrote no audio")
-        shutil.move(str(made[0]), out)
+        if mid == "kokoro-82m":
+            cmd = [KOKORO_PY, "-m", "mlx_audio.tts.generate", "--model", model_dir, "--text", text,
+                   "--voice", model_dir / "voices" / f"{voice}.safetensors", "--lang_code", lang, "--speed", str(speed),
+                   "--file_prefix", Path(tmp) / "speech", "--audio_format", "wav", "--join_audio"]
+            ctx.runner.run(cmd, out.with_name(out.name + ".log"), env={"HF_HUB_OFFLINE": "1"})
+            made = sorted(Path(tmp).glob("speech*.wav"))
+            if not made:
+                raise EngineError("mlx-audio wrote no audio")
+            shutil.move(str(made[0]), out)
+        else:
+            (Path(tmp) / "text.txt").write_text(text, encoding="utf-8")
+            cmd = [KOKORO_PY, Path(__file__).parent / "engines" / "kokoro_torch.py", model_dir, voice, str(speed),
+                   Path(tmp) / "text.txt", out]
+            ctx.runner.run(cmd, out.with_name(out.name + ".log"), env={"HF_HUB_OFFLINE": "1"})
     found = checks.audio(out)
-    rec = provenance.record(out, "bin/ai-speech", ["kokoro-82m"], [], cmd, started, prompt=text,
+    rec = provenance.record(out, "bin/ai-speech", [mid], [], cmd, started, prompt=text,
                             params={"voice": voice, "speed": speed, "language": lang}, checks=found) | {"policy": pol}
     res = ops._finish(ctx, out, rec, "audio", tags=text)
     from .engines import post

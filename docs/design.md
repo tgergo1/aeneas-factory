@@ -13,9 +13,10 @@ How Aeneas Factory is put together, and why. The README says how to use it.
 ## Layers
 
 ```
-ways in      MCP server (agents) · aen command line (scripts, people) · ComfyUI and Blender (people)
+ways in      MCP server (agents) · aen command line (scripts, people) · VS Code extension, ComfyUI and Blender (people)
 service      one per machine: job queue, policy, engines, checks, candidates, provenance, library
-engines      sd-cli · trellis-cli · MOSS worker (MLX) · Kokoro (MLX) · rembg · ComfyUI · Blender · ffmpeg
+engines      sd-cli · trellis-cli · MOSS (MLX worker, or openmoss) · Kokoro (MLX, or PyTorch) · rembg · ComfyUI · Blender · ffmpeg
+platform     aeneas/host.py: OS, GPU backend, venv paths, where apps live, sandbox, login item
 stores       models.json + models/ · ~/.aeneas/library.db · recipes/ · styles/ · <project>/.aeneas/
 ```
 
@@ -72,4 +73,5 @@ All three ways in end in the same function calls (`aeneas/ops.py`), so policy, c
 - **C2PA content credentials**: they need signing certificates and `c2patool`; the embedded record covers the facts, and C2PA can be added on export when a project needs it.
 - **LoRA training**: applying LoRAs works (style packs), but training them for Z-Image or FLUX.2 klein on Apple Silicon was not verified.
 - **Video**: Wan 2.2 TI2V 5B is 24 GB and no project here needs it yet.
-- **Linux and NVIDIA**: sd.cpp and trellis.cpp build there with `CMAKE_ARGS`, and ComfyUI is the natural engine; the MLX parts (sound, speech) are Apple-only. Untested.
+- **Windows, end to end**: the installer, the engines (CUDA, Vulkan), login item and launchers are written for it, but no Windows machine has run them yet. Windows also has no practical sandbox without extra software (AppContainer would do, but is fiddly and blocks loopback), so explicit notation renders run unsandboxed there and code (Sonic Pi) is refused.
+- **Linux engines on a GPU**: the CI runner checks the tests, commands and editor extension on Linux, and builds the engines on request; image, sound and 3D quality on CUDA or Vulkan has not been compared with the Apple Silicon results yet.

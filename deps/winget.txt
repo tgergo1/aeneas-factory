@@ -1,0 +1,22 @@
+# Windows: winget install --id ... (IDs checked against microsoft/winget-pkgs)
+# Not on winget (install by hand if you need them): resvg, rsvg-convert, FluidSynth, abcMIDI, Csound, Faust,
+# basisu, COLMAP. The C++ builds need Visual Studio Build Tools with C++ (Microsoft.VisualStudio.2022.BuildTools).
+Git.Git
+Kitware.CMake
+Ninja-build.Ninja
+astral-sh.uv
+Gyan.FFmpeg
+OpenJS.NodeJS.LTS
+Microsoft.DotNet.SDK.8
+ImageMagick.ImageMagick
+Graphviz.Graphviz
+Terrastruct.D2
+LilyPond.LilyPond
+ChrisBagwell.SoX
+SuperCollider.SuperCollider
+OpenSCAD.OpenSCAD
+Tiled.Tiled
+GodotEngine.GodotEngine
+BlenderFoundation.Blender
+GIMP.GIMP.3
+SonicPi.SonicPi

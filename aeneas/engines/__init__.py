@@ -7,6 +7,7 @@ import subprocess
 import threading
 from pathlib import Path
 
+from .. import host
 from ..paths import portable
 
 
@@ -35,8 +36,10 @@ class Runner:
             with self.lock:
                 if self.cancelled:
                     raise Cancelled()
+                group = ({"creationflags": subprocess.CREATE_NEW_PROCESS_GROUP} if host.WINDOWS
+                         else {"start_new_session": True})  # so cancel stops the tool and everything it started
                 self.proc = subprocess.Popen([str(c) for c in cmd], stdout=log, stderr=subprocess.STDOUT,
-                                             env={**os.environ, **(env or {})}, cwd=cwd, start_new_session=True)
+                                             env={**os.environ, **(env or {})}, cwd=cwd, **group)
             code = self.proc.wait()
             with self.lock:
                 self.proc = None
@@ -45,7 +48,7 @@ class Runner:
         if code != 0:
             # the tool's own words, without the command line the log starts with
             tail = [l for l in log_path.read_text(errors="replace").splitlines() if not l.startswith("$ ")][-20:]
-            tool = cmd[3] if str(cmd[0]).endswith("sandbox-exec") and len(cmd) > 3 else cmd[0]
+            tool = tool_name(cmd)
             raise EngineError(f"{Path(str(tool)).name} failed (exit {code}). End of {portable(log_path)}:\n"
                               + "\n".join(tail))
 
@@ -54,6 +57,20 @@ class Runner:
             self.cancelled = True
             if self.proc and self.proc.poll() is None:
                 try:
-                    os.killpg(self.proc.pid, signal.SIGTERM)
+                    if host.WINDOWS:
+                        subprocess.run(["taskkill", "/T", "/F", "/PID", str(self.proc.pid)], capture_output=True)
+                    else:
+                        os.killpg(self.proc.pid, signal.SIGTERM)
                 except ProcessLookupError:
                     pass
+
+
+def tool_name(cmd):
+    """The program a command runs, looking through a sandbox wrapper (sandbox-exec -p PROFILE, bwrap ... --)."""
+    cmd = [str(c) for c in cmd]
+    if cmd and cmd[0].endswith("sandbox-exec") and len(cmd) > 3:
+        return Path(cmd[3]).name
+    if cmd and Path(cmd[0]).name == "bwrap" and "--" in cmd:
+        rest = cmd[cmd.index("--") + 1:]
+        return Path(rest[0]).name if rest else "bwrap"
+    return Path(cmd[0]).name if cmd else "?"

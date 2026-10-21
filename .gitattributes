@@ -9,3 +9,9 @@
 
 # The diagram is text and diffs well.
 *.svg text
+
+# Windows batch files keep CRLF line endings.
+*.cmd text eol=crlf
+
+# The editor extension's own pictures are tiny and must be real files in a checkout without LFS.
+editors/vscode/media/*.png -filter -diff -merge binary

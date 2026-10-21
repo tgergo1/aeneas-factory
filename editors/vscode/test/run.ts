@@ -6,9 +6,18 @@ import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
 
-const INSTALLED = "/Applications/Visual Studio Code.app/Contents/MacOS/Code";
+// The installed VS Code on each OS; elsewhere @vscode/test-electron downloads one (AEN_VSCODE=download forces that).
+const INSTALLED = ({
+  darwin: "/Applications/Visual Studio Code.app/Contents/MacOS/Code",
+  linux: "/usr/share/code/code",
+  win32: path.join(process.env.LOCALAPPDATA ?? "", "Programs", "Microsoft VS Code", "Code.exe"),
+} as Record<string, string>)[process.platform] ?? "";
 
 async function main() {
+  if (process.platform === "linux" && !process.env.DISPLAY && !process.env.WAYLAND_DISPLAY) {
+    console.error("No display: run the integration tests under a virtual one, e.g. xvfb-run -a npm test");
+    process.exit(2);
+  }
   const root = path.resolve(__dirname, "../..");
   const workspace = fs.mkdtempSync(path.join(os.homedir(), ".aeneas", "vscode-test-"));
   const profile = fs.mkdtempSync(path.join(os.tmpdir(), "aen-vsc-")); // short: VS Code's socket path must stay short

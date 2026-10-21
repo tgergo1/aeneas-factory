@@ -72,8 +72,8 @@ An editor or an existing free asset often beats drawing something in code or gen
 
 | Tool | Use it for |
 |---|---|
-| Blender (`/Applications/Blender.app/Contents/MacOS/Blender -b --python script.py`) | Modelling, retopology, UVs, baking, rigging, animation, rendering, converting glTF, FBX, OBJ, USD. `scripts/render_glb.py` renders a `.glb` preview |
-| GIMP (`/Applications/GIMP.app/Contents/MacOS/gimp-console` for batch work) | Retouching, masks, tiling, sprite sheets, icons |
+| Blender (`blender -b --python script.py`; `aen where blender` prints its path on this machine) | Modelling, retopology, UVs, baking, rigging, animation, rendering, converting glTF, FBX, OBJ, USD. `scripts/render_glb.py` renders a `.glb` preview |
+| GIMP (`gimp-console` for batch work; `aen where gimp` prints its path) | Retouching, masks, tiling, sprite sheets, icons |
 | ffmpeg | Cutting, encoding and converting video and audio |
 
 ## Free sources to look in first

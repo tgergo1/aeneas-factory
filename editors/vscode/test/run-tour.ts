@@ -16,7 +16,7 @@ async function main() {
   console.log(`tour steps: touch ${dir}/next`);
   try {
     await runTests({
-      vscodeExecutablePath: "/Applications/Visual Studio Code.app/Contents/MacOS/Code",
+      vscodeExecutablePath: process.platform === "darwin" ? "/Applications/Visual Studio Code.app/Contents/MacOS/Code" : undefined,
       extensionDevelopmentPath: path.resolve(__dirname, "../.."),
       extensionTestsPath: path.join(__dirname, "tour", "index"),
       launchArgs: [workspace, "--disable-extensions", "--user-data-dir", path.join(profile, "u"), "--extensions-dir", path.join(profile, "e"), "--disable-workspace-trust",

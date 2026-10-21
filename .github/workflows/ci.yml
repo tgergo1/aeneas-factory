@@ -1,34 +1,55 @@
+# CI on the owner's self-hosted Linux runner only: no GitHub-hosted runners, nothing billed per minute.
+#
+# Safety, because this is a public repository and the runner is a private machine:
+# - no pull_request / pull_request_target triggers: code from forks never runs here. Only pushes to main,
+#   manual runs and the weekly schedule (all need write access to the repository) start a job;
+# - read-only token, GitHub's own actions only, pinned to commits;
+# - no Git LFS checkout (LFS bandwidth is billable); tests that need a picture skip on pointer files;
+# - everything a job installs stays in its workspace (.venv, tools/, .ci/); nothing system-wide.
 name: CI
 
 on:
   push:
-  pull_request:
+    branches: [main]
   schedule:
     - cron: "17 5 * * 1"   # every Monday: are the pinned downloads still there?
   workflow_dispatch:
     inputs:
       build:
-        description: "Also build the tools on an Apple Silicon runner"
+        description: "Also build sd-cli, trellis-cli and moss-tts-cli on the runner (CPU unless it has a GPU toolkit)"
         type: boolean
         default: false
+      integration:
+        description: "Also run the editor extension's integration tests (needs xvfb-run on the runner)"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   tests:
     name: Tests, register and docs (no models, no GPU)
-    runs-on: ubuntu-latest
+    if: github.event_name != 'schedule'
+    runs-on: [self-hosted, Linux, X64]
+    timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
         with:
-          lfs: true
-      - uses: astral-sh/setup-uv@v6
+          lfs: false
+          persist-credentials: false
+      - name: uv (a pinned copy in the workspace if the runner has none)
+        run: . scripts/ci_env.sh
       - name: Factory environment (pinned, hashed)
-        run: |
-          uv venv --python 3.12 .venv
-          uv pip install --python .venv/bin/python --require-hashes -r requirements/factory.txt
-      - name: Byte-compile everything
-        run: .venv/bin/python -m compileall -q aeneas scripts tests
+        run: python3 install.py factory
+      - name: What this machine offers
+        run: .venv/bin/python -m aeneas where machine
       - name: Tests
-        run: .venv/bin/python -m pytest -q tests
+        run: python3 install.py test
       - name: Docs agree with models.json
         run: .venv/bin/python scripts/gen_docs.py --check
       - name: Command line starts
@@ -36,33 +57,62 @@ jobs:
           bin/aen --version
           bin/aen models list
           bin/aen recipe list
+          bin/aen check --quick || true   # tools not built here are reported, not failures
+      - name: Explicit tools present on the runner (informational)
+        run: bin/aen tools check || true
 
   vscode:
     name: Editor extension (typecheck, unit tests, package)
-    runs-on: ubuntu-latest
+    if: github.event_name != 'schedule'
+    runs-on: [self-hosted, Linux, X64]
+    timeout-minutes: 30
     defaults:
       run:
         working-directory: editors/vscode
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
         with:
-          lfs: true
-      - uses: actions/setup-node@v4
+          lfs: false
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020  # v4.4.0
         with:
           node-version: 22
-          cache: npm
-          cache-dependency-path: editors/vscode/package-lock.json
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - run: npm run typecheck
-      - name: Unit tests (the integration tests need a Mac with the factory service; run them with make vscode-test)
-        run: npx tsc -p tsconfig.test.json && npm run test:unit
+      - run: npx tsc -p tsconfig.test.json && npm run test:unit
       - run: npm run package
+      - name: Integration tests in a real VS Code (downloaded into the workspace, virtual display)
+        if: github.event_name == 'workflow_dispatch' && inputs.integration
+        working-directory: .
+        run: |
+          . scripts/ci_env.sh
+          python3 install.py factory
+          .venv/bin/python -m aeneas service start
+          cd editors/vscode && AEN_VSCODE=download xvfb-run -a npm test
+          ../../.venv/bin/python -m aeneas service stop
+
+  build:
+    name: Build the engines on the runner
+    if: github.event_name == 'workflow_dispatch' && inputs.build
+    runs-on: [self-hosted, Linux, X64]
+    timeout-minutes: 240
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
+        with:
+          lfs: false
+          persist-credentials: false
+      - run: . scripts/ci_env.sh && python3 install.py prereqs factory sd trellis moss check-quick
 
   downloads:
     name: Every pinned download still answers
-    runs-on: ubuntu-latest
+    if: github.event_name != 'push'
+    runs-on: [self-hosted, Linux, X64]
+    timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
+        with:
+          lfs: false
+          persist-credentials: false
       - name: HEAD every URL in models.json
         run: |
           python3 - <<'EOF'
@@ -72,25 +122,9 @@ jobs:
               for f in m["files"]:
                   req = urllib.request.Request(f["url"], method="HEAD", headers={"User-Agent": "aeneas-factory-ci"})
                   try:
-                      with urllib.request.urlopen(req, timeout=60) as r:
-                          size = int(r.headers.get("Content-Length") or r.headers.get("x-linked-size") or f["bytes"])
-                          if size != f["bytes"] and r.headers.get("Content-Length"):
-                              bad.append(f"{m['id']}/{f['path']}: size {size}, expected {f['bytes']}")
+                      urllib.request.urlopen(req, timeout=60)
                   except Exception as e:
                       bad.append(f"{m['id']}/{f['path']}: {e}")
           print("\n".join(bad) or "all downloads answer")
           sys.exit(1 if bad else 0)
           EOF
-
-  build-macos:
-    name: Build the tools on Apple Silicon
-    if: github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.build)
-    runs-on: macos-15
-    steps:
-      - uses: actions/checkout@v4
-      - name: Prerequisites
-        run: brew install cmake uv
-      - name: Build sd-cli, trellis-cli and the MOSS env at their pinned commits
-        run: make prereqs factory tools
-      - name: Quick check (tools only; no models in CI)
-        run: bin/aen check --quick

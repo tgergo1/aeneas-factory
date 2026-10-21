@@ -1,0 +1,8 @@
+# Speech (Kokoro with PyTorch) environment for Linux, Windows and Intel Macs: tools/kokoro/.venv
+# PyTorch from its CPU index: an 82M model needs no GPU, and the CUDA wheels add gigabytes.
+kokoro==0.9.4
+misaki[en]==0.9.4
+soundfile
+torch
+# misaki needs the spaCy English model; pinned here so nothing is downloaded at run time
+en_core_web_sm @ https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl

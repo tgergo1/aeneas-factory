@@ -1,11 +1,11 @@
 # Aeneas Factory
 
-**Local generation of images, textures, 3D models, sound effects and speech on a Mac, plus 30 explicit tools that turn code and text into exact assets (music, live-coded Sonic Pi tracks, diagrams, icons, pixel art, CAD parts, levels, dialogue), built so that AI agents can use it safely and every result can be trusted.** Open models, pinned and checksummed. One shared service with a job queue. An MCP server for Claude Code and Codex. Automatic checks so a blank image is never reported as a success. Provenance written into every file. A licence policy per project. Recipes that turn a request into a finished asset. A searchable library of everything made or downloaded.
+**Local generation of images, textures, 3D models, sound effects and speech on macOS, Linux or Windows, plus 30 explicit tools that turn code and text into exact assets (music, live-coded Sonic Pi tracks, diagrams, icons, pixel art, CAD parts, levels, dialogue), built so that AI agents can use it safely and every result can be trusted.** Open models, pinned and checksummed. One shared service with a job queue. An MCP server for Claude Code and Codex. Automatic checks so a blank image is never reported as a success. Provenance written into every file. A licence policy per project. Recipes that turn a request into a finished asset. A searchable library of everything made or downloaded.
 
 **Built with DINOv3**: the 3D generator (TRELLIS.2) uses Meta's DINOv3 image features under the [DINOv3 License](https://ai.meta.com/resources/models-and-libraries/dinov3-license); see [Licences](#licences).
 
 <p align="center">
-  <img src="docs/factory.svg" alt="Diagram: agents use the MCP server, scripts the aen command line, people the VS Code extension, ComfyUI and Blender. All work goes through one factory service: licence policy, engine, checks, ranked candidates, provenance, asset library. Engines: stable-diffusion.cpp (Z-Image Turbo, FLUX.2 klein), trellis.cpp (TRELLIS.2), MLX (MOSS-SoundEffect, Kokoro), Real-ESRGAN, BiRefNet, ComfyUI, Blender, ffmpeg. Explicit tools: diagrams, SVG, music, dialogue and 25 more, sandboxed." width="100%">
+  <img src="docs/factory.svg" alt="Diagram: agents use the MCP server, scripts the aen command line, people the VS Code extension, ComfyUI and Blender. All work goes through one factory service: licence policy, engine, checks, ranked candidates, provenance, asset library. Engines: stable-diffusion.cpp (Z-Image Turbo, FLUX.2 klein), trellis.cpp (TRELLIS.2), MOSS-SoundEffect and Kokoro (MLX on Apple Silicon, openmoss and PyTorch elsewhere), Real-ESRGAN, BiRefNet, ComfyUI, Blender, ffmpeg. Explicit tools: diagrams, SVG, music, dialogue and 25 more, sandboxed." width="100%">
 </p>
 
 ## What it does
@@ -70,24 +70,32 @@ These came out of one command each, through the factory service, with every inte
 
 ## Quick start
 
+The installer is [`install.py`](install.py) (Python 3.10 or later, nothing else); on macOS and Linux `make <step>` runs the same steps. It detects the GPU and builds the engines for it: Metal on Apple Silicon, CUDA when the CUDA toolkit is installed, Vulkan when the Vulkan SDK (`glslc`) is, else the CPU (`AEN_GPU=cuda|vulkan|cpu` chooses).
+
+| | Prerequisites |
+|---|---|
+| macOS | `xcode-select --install`, then `brew install cmake uv git-lfs ffmpeg` |
+| Linux (Debian, Ubuntu) | `sudo apt install build-essential cmake ninja-build git git-lfs curl ffmpeg bubblewrap`, and `uv` ([install](https://docs.astral.sh/uv/getting-started/installation/)); a GPU toolkit (CUDA, or `glslc libvulkan-dev` for Vulkan) for fast images and 3D |
+| Windows | `winget install Git.Git Kitware.CMake Ninja-build.Ninja astral-sh.uv Gyan.FFmpeg Python.Python.3.12` and Visual Studio Build Tools with C++ (`Microsoft.VisualStudio.2022.BuildTools`); run the installer from a *Developer PowerShell for VS* |
+
 ```bash
-brew install cmake uv git-lfs ffmpeg      # and the Xcode Command Line Tools: xcode-select --install
 git clone https://github.com/tgergo1/aeneas-factory.git
 cd aeneas-factory
 make install GROUPS=image                 # images only: tools + 15.7 GB of models + a quick check
+                                          # Windows: py install.py install --groups image
 ```
 
-Everything (all four core models, 40.5 GB; read the [DINOv3 licence](https://ai.meta.com/resources/models-and-libraries/dinov3-license) first, since TRELLIS.2 needs it):
+Everything (all four core models, about 40 GB; read the [DINOv3 licence](https://ai.meta.com/resources/models-and-libraries/dinov3-license) first, since TRELLIS.2 needs it):
 
 ```bash
-make install ACCEPT=dinov3
+make install ACCEPT=dinov3                # py install.py install --accept dinov3
 make extras models-extras                 # optional: ranking, background removal, speech, upscaling, music (2.1 GB)
-make explicit                             # optional: the 30 explicit tools (Homebrew, Python, Node, .NET; no models)
+make explicit                             # optional: the 30 explicit tools (system packages, Python, Node, .NET; no models)
 ```
 
-The explicit tools need none of the models; `make factory explicit` and `aen models download generaluser-gs` (32 MB, for music) are enough for them alone.
+The explicit tools need none of the models; `make factory explicit` and `aen models download generaluser-gs` (32 MB, for music) are enough for them alone. `python install.py help` lists every step.
 
-Then:
+Then (on Windows the commands are `bin\aen.cmd`, `bin\ai-image.cmd`, ...):
 
 ```bash
 export PATH="$PWD/bin:$PATH"
@@ -101,6 +109,21 @@ aen diagram 'digraph { idea -> sketch -> asset }' -o flow.png
 aen tools check                           # prove every explicit tool works
 ```
 
+## Platforms
+
+| | macOS, Apple Silicon | Linux x64 | Windows x64 |
+|---|---|---|---|
+| Images, upscaling (stable-diffusion.cpp) | Metal | CUDA, Vulkan or CPU | CUDA, Vulkan or CPU |
+| 3D (trellis.cpp) | Metal | CUDA or Vulkan (CPU works but takes hours) | CUDA or Vulkan |
+| Sound effects (MOSS-SoundEffect) | MLX | openmoss (C++/GGML: CUDA, Vulkan, ROCm or CPU) | openmoss |
+| Speech (Kokoro) | MLX | PyTorch (CPU is enough) | PyTorch |
+| Sandbox for the explicit tools | `sandbox-exec` | bubblewrap (`bwrap`) | none: notation renders run unsandboxed, code (Sonic Pi) is refused unless `AEN_ALLOW_UNSANDBOXED=1` |
+| Start at login | LaunchAgent | systemd user unit | per-user Run entry |
+| Explicit tools from | Homebrew ([`Brewfile`](Brewfile)) | apt, dnf, pacman or Homebrew ([`deps/`](deps)) | winget ([`deps/winget.txt`](deps/winget.txt)); 8 are not on winget |
+| Tested | yes: everything, every release (M5 Pro) | tests, docs, commands and the editor extension on a self-hosted runner; the engines are built there on request | not yet |
+
+The same models, recipes, records and MCP tools on all three; a record says which engine and platform made a file. Intel Macs use the Linux and Windows variants of sound and speech.
+
 ## Using it from an AI agent
 
 Register the MCP server once; it starts the factory service by itself when needed:
@@ -109,6 +132,8 @@ Register the MCP server once; it starts the factory service by itself when neede
 claude mcp add --scope user aeneas -- "$PWD/bin/aen" mcp
 codex mcp add aeneas -- "$PWD/bin/aen" mcp
 ```
+
+On Windows use `bin\aen.cmd` in place of `bin/aen`; `python install.py mcp-info` prints the exact lines for this machine.
 
 21 tools:
 
@@ -126,7 +151,7 @@ codex mcp add aeneas -- "$PWD/bin/aen" mcp
 The VS Code extension ([`editors/vscode`](editors/vscode); also Cursor, Windsurf and VSCodium) puts the factory in the editor: diagrams, SVG, ABC music and Ink or Yarn dialogue render beside their source on every save; `.glb` models open in a 3D viewer with their real size and `.wav` files with their waveform and levels; a Provenance view shows how the open file was made (models, licences, required credits, prompt, seed, checks, and whether the file still matches its record); and there are a Library search with thumbnails, a Jobs view, generation commands, and hand-off to Blender, GIMP and Godot. It is a client of the same service, so the editor, the command line and agents share one queue and one library.
 
 ```bash
-make vscode-install       # build the extension and install it (needs Node; VSCODE_CLI=cursor for Cursor)
+make vscode-install       # build the extension and install it (needs Node; VSCODE_CLI=cursor for Cursor; Windows: py install.py vscode-install)
 ```
 
 ## The command line
@@ -157,7 +182,7 @@ make vscode-install       # build the extension and install it (needs Node; VSCO
 
 ## Explicit tools: code and text in, assets out
 
-Generation is the wrong tool when the result must be exact, editable or the same every time: an icon in a UI, a chart, a tune that loops, a part with real dimensions, a level, a dialogue tree. For those the factory installs 30 tools that turn code or text into assets, with no model weights: `make explicit` (Homebrew packages from the [`Brewfile`](Brewfile), a locked Python environment, locked Node packages, Yarn Spinner, and the GeneralUser GS SoundFont). `aen tools check` makes something real with each one and checks it.
+Generation is the wrong tool when the result must be exact, editable or the same every time: an icon in a UI, a chart, a tune that loops, a part with real dimensions, a level, a dialogue tree. For those the factory installs 30 tools that turn code or text into assets, with no model weights: `make explicit` (system packages: Homebrew from the [`Brewfile`](Brewfile) on macOS, apt, dnf, pacman or Homebrew from [`deps/`](deps) on Linux, winget on Windows; then a locked Python environment, locked Node packages, Yarn Spinner, and the GeneralUser GS SoundFont). On Linux, packages that need `sudo` are printed for you to run, or installed with `python install.py explicit --system`. Tools that are not installed are simply unavailable; `aen tools list` shows which. `aen tools check` makes something real with each one and checks it.
 
 | Area | Tools |
 |---|---|
@@ -170,7 +195,7 @@ Generation is the wrong tool when the result must be exact, editable or the same
 | Physics and motion | pymunk, MuJoCo, Manim |
 | Levels and dialogue | Tiled and tmxrasterizer, Godot (headless), Ink (inkjs), Yarn Spinner |
 
-Four of them have their own commands and MCP tools that take text (`aen diagram`, `aen svg`, `aen music`, `aen dialogue`; `render_diagram`, `render_svg`, `compose_music`, `compile_dialogue`): sandboxed, checked like every other output, and recorded with their source. Every tool runs as `aen tool NAME -- args` with the environment it needs (Homebrew paths, .NET, the SoundFont):
+Four of them have their own commands and MCP tools that take text (`aen diagram`, `aen svg`, `aen music`, `aen dialogue`; `render_diagram`, `render_svg`, `compose_music`, `compile_dialogue`): sandboxed, checked like every other output, and recorded with their source. Every tool runs as `aen tool NAME -- args` with the environment it needs (tool paths, .NET, the SoundFont):
 
 ```bash
 aen tools list                                           # what is installed, by area, with licences
@@ -181,9 +206,9 @@ aen tool gltfpack -- -i model.glb -o model-small.glb -cc
 aen tool blender -- -b --python rig.py                   # Rigify, BVH retargeting, QuadriFlow
 ```
 
-`--sandbox DIR` runs the tool under macOS `sandbox-exec`: no network, and writes only inside `DIR` (and the temporary and cache folders). Use it for anything that executes code. [`AGENTS.md`](AGENTS.md) has a table of which tool to reach for, need by need.
+`--sandbox DIR` runs the tool sandboxed: no network, and writes only inside `DIR` (and the temporary and cache folders), with `sandbox-exec` on macOS and bubblewrap on Linux. Use it for anything that executes code. Windows has no comparable sandbox, so there `--sandbox` and Sonic Pi code are refused unless you set `AEN_ALLOW_UNSANDBOXED=1`. [`AGENTS.md`](AGENTS.md) has a table of which tool to reach for, need by need.
 
-FontForge was left out because Homebrew disabled it (it fails macOS Gatekeeper); fontTools covers fonts.
+FontForge was left out because Homebrew disabled it (it fails macOS Gatekeeper); fontTools covers fonts. Not on winget, so install them by hand on Windows if you need them: resvg, rsvg-convert, FluidSynth, abcMIDI, Csound, Faust, basisu and COLMAP. Sonic Pi needs version 5 (Linux distributions package older ones; get it from [sonic-pi.net](https://sonic-pi.net)).
 
 ## Recipes, styles, policy and the library
 
@@ -218,34 +243,38 @@ ComfyUI uses the same GGUF files as `sd-cli`. The factory ships a small ComfyUI 
 | Z-Image Turbo | image | 11.2 GB | Fast text-to-image (8 steps), photographic and illustrative; Q8 GGUF with a Qwen3-4B text encoder | Apache-2.0. | [huggingface.co/Tongyi-MAI/Z-Image-Turbo](https://huggingface.co/Tongyi-MAI/Z-Image-Turbo) |
 | FLUX.2 [klein] 4B | image | 4.5 GB | Text-to-image and editing from reference images (4 steps); Q8 GGUF, shares the Qwen3-4B text encoder of z-image-turbo | Apache-2.0. | [huggingface.co/black-forest-labs/FLUX.2-klein-4B](https://huggingface.co/black-forest-labs/FLUX.2-klein-4B) |
 | TRELLIS.2 4B | 3d | 16.5 GB | One image to a textured, UV-unwrapped GLB with PBR maps; GGUF set with DINOv3 features and BiRefNet matting | MIT (TRELLIS.2, BiRefNet); DINOv3 License (Meta) for dinov3.gguf. Download needs `ACCEPT=dinov3`. | [huggingface.co/microsoft/TRELLIS.2-4B](https://huggingface.co/microsoft/TRELLIS.2-4B) |
-| MOSS-SoundEffect v2.0 (MLX bf16) | sound | 8.4 GB | Sound effects, foley and ambience from a description; 48 kHz, up to 30 s | Apache-2.0. | [huggingface.co/OpenMOSS-Team/MOSS-SoundEffect-v2.0](https://huggingface.co/OpenMOSS-Team/MOSS-SoundEffect-v2.0) |
+| MOSS-SoundEffect v2.0 (MLX bf16) | sound, Apple Silicon | 8.4 GB | Sound effects, foley and ambience from a description; 48 kHz, up to 30 s | Apache-2.0. | [huggingface.co/OpenMOSS-Team/MOSS-SoundEffect-v2.0](https://huggingface.co/OpenMOSS-Team/MOSS-SoundEffect-v2.0) |
+| MOSS-SoundEffect v2.0 (GGUF BF16, openmoss) | sound, Linux, Windows, Intel Macs | 7.1 GB | Sound effects, foley and ambience from a description; 48 kHz, up to 30 s. The same model as moss-sfx, for the openmoss C++ runtime (CUDA, Vulkan, ROCm or CPU) | Apache-2.0. | [huggingface.co/OpenMOSS-Team/MOSS-SoundEffect-v2.0](https://huggingface.co/OpenMOSS-Team/MOSS-SoundEffect-v2.0) |
 | Real-ESRGAN x4plus | upscale (optional) | 67 MB | Four times larger images, general photos and renders | BSD-3-Clause. | [github.com/xinntao/Real-ESRGAN](https://github.com/xinntao/Real-ESRGAN) |
 | BiRefNet general lite (ONNX, for rembg) | matte (optional) | 224 MB | Background removal: the subject on a transparent background | MIT. | [github.com/ZhengPeng7/BiRefNet](https://github.com/ZhengPeng7/BiRefNet) |
 | SigLIP base, patch 16, 224 px | scoring (optional) | 816 MB | Scores how well an image matches its prompt; image search by meaning | Apache-2.0. | [huggingface.co/google/siglip-base-patch16-224](https://huggingface.co/google/siglip-base-patch16-224) |
 | CLAP HTSAT (unfused) | scoring (optional) | 618 MB | Scores how well a sound matches its description | Apache-2.0. | [huggingface.co/laion/clap-htsat-unfused](https://huggingface.co/laion/clap-htsat-unfused) |
-| Kokoro 82M (MLX bf16) | speech (optional) | 330 MB | Text to speech, English voices; fast and small | Apache-2.0. | [huggingface.co/hexgrad/Kokoro-82M](https://huggingface.co/hexgrad/Kokoro-82M) |
+| Kokoro 82M (MLX bf16) | speech (optional), Apple Silicon | 330 MB | Text to speech, English voices; fast and small | Apache-2.0. | [huggingface.co/hexgrad/Kokoro-82M](https://huggingface.co/hexgrad/Kokoro-82M) |
+| Kokoro 82M (PyTorch) | speech (optional), Linux, Windows, Intel Macs | 330 MB | Text to speech, English voices; fast and small, CPU is enough. The same model as kokoro-82m, for the kokoro PyTorch package | Apache-2.0. | [huggingface.co/hexgrad/Kokoro-82M](https://huggingface.co/hexgrad/Kokoro-82M) |
 | GeneralUser GS 2.0.3 (SoundFont) | music (optional) | 32 MB | General MIDI instrument bank: turns MIDI into audio with FluidSynth (aen music) | GeneralUser GS License v2.0. | [github.com/mrbumpy409/GeneralUser-GS](https://github.com/mrbumpy409/GeneralUser-GS) |
 
-The four core models total **40.5 GB**; the optional ones **2.1 GB**. Every file's URL (pinned to a commit or release), size and SHA-256 are in [`models.json`](models.json).
+The four core models total **40.5 GB** on Apple Silicon and **39.2 GB** on Linux and Windows (sound uses the GGUF variant there); the optional ones **2.1 GB** and **2.1 GB**. Each machine downloads only the variants for its platform. Every file's URL (pinned to a commit or release), size and SHA-256 are in [`models.json`](models.json).
 <!-- models:end -->
 
 | Tool | Pinned | Licence | Used for |
 |---|---|---|---|
 | [stable-diffusion.cpp](https://github.com/leejet/stable-diffusion.cpp) | `59c23bc` | MIT | images, editing, tiles, upscaling |
 | [trellis.cpp](https://github.com/pwilkin/trellis.cpp) | `2516c48` | MIT | 3D |
-| [moss-soundeffect-mlx](https://github.com/xocialize/moss-soundeffect-mlx) | `4e8e3e3` | Apache-2.0 | sound effects |
-| [mlx-audio](https://github.com/Blaizzy/mlx-audio) | `requirements/speech.txt` | MIT | speech |
+| [moss-soundeffect-mlx](https://github.com/xocialize/moss-soundeffect-mlx) | `4e8e3e3` | Apache-2.0 | sound effects on Apple Silicon |
+| [openmoss](https://github.com/pwilkin/openmoss) | v0.3.0 (`bfb1f46`) | Apache-2.0 | sound effects elsewhere (moss-tts-cli) |
+| [mlx-audio](https://github.com/Blaizzy/mlx-audio) | `requirements/speech.txt` | MIT | speech on Apple Silicon |
+| [kokoro](https://github.com/hexgrad/kokoro) (PyTorch) | 0.9.4, `requirements/speech-torch.txt` | Apache-2.0 (its phonemizer and espeak-ng are GPL-3.0) | speech elsewhere |
 | [rembg](https://github.com/danielgatis/rembg) | `requirements/matte.txt` | MIT | background removal |
 | [ComfyUI](https://github.com/Comfy-Org/ComfyUI), [ComfyUI-GGUF](https://github.com/city96/ComfyUI-GGUF) | v0.40.0, `6ea2651` | GPL-3.0, Apache-2.0 | optional engine and UI |
-| The explicit tools (`make explicit`) | [`Brewfile`](Brewfile), `requirements/explicit.txt`, [`requirements/explicit-node`](requirements/explicit-node), Yarn Spinner 3.2.2 | each its own (`aen tools list` shows them): mostly MIT, BSD, Apache-2.0, LGPL and GPL; none of them puts a licence on what you make | diagrams, SVG, music, synthesis, CAD, mesh work, levels, dialogue |
+| The explicit tools (`make explicit`) | [`Brewfile`](Brewfile), [`deps/`](deps), `requirements/explicit.txt`, [`requirements/explicit-node`](requirements/explicit-node), Yarn Spinner 3.2.2 | each its own (`aen tools list` shows them): mostly MIT, BSD, Apache-2.0, LGPL and GPL; none of them puts a licence on what you make | diagrams, SVG, music, synthesis, CAD, mesh work, levels, dialogue |
 
 Every Python environment is locked with exact versions and hashes in [`requirements/`](requirements), and the Node packages in a lockfile.
 
 ## Requirements and timings
 
-A Mac with Apple Silicon (tested: M5 Pro, 64 GB, macOS 27). Xcode Command Line Tools, Homebrew `cmake`, `uv`, `git`; `ffmpeg` and Blender for sound mastering, 3D previews and clean-up. `make prereqs` checks. The explicit tools take about 5.5 GB (Sonic Pi is 364 MB of that): Homebrew packages and apps (including Node and .NET, which `make explicit` installs) and 2.6 GB of Python and Node environments in `tools/explicit`. They use Blender and Godot from `/Applications` when they are there.
+macOS on Apple Silicon, Linux on x64, or Windows on x64, with a C++ compiler, CMake, git and [uv](https://docs.astral.sh/uv/) (see Quick start), and ffmpeg and Blender for sound mastering, 3D previews and clean-up. `make prereqs` (`py install.py prereqs`) checks, and names the GPU backend it will build for. A GPU with about 16 GB of memory runs everything; images also run on the CPU (slowly), 3D realistically needs a GPU. The explicit tools take about 5.5 GB on macOS (Sonic Pi is 364 MB of that): system packages and apps, and 2.6 GB of Python and Node environments in `tools/explicit`. Apps such as Blender, GIMP, Godot, Tiled and Sonic Pi are found where each OS installs them, or set `AEN_BLENDER`, `AEN_GIMP`, ... to their paths.
 
-Measured on the M5 Pro:
+Measured on an Apple M5 Pro, 64 GB, macOS 27 (other machines: run `aen check` for your own numbers):
 
 | Job | Time |
 |---|---|
@@ -271,40 +300,41 @@ The sound model needs about 14 GB of GPU memory; the service unloads it after fi
 | Image and 3D tools | only while a job runs | about 10 GB (images), 16 GB or more (3D) during the job |
 
 ```bash
-aen service autostart on     # start the service at login (a LaunchAgent); "off" to remove it
+aen service autostart on     # start the service at login (LaunchAgent, systemd user unit, or Windows Run entry); "off" removes it
 aen service status           # pid, idle time, which models are loaded
 ```
 
 ## Security
 
-The service listens on 127.0.0.1 only. Every request needs the token in `~/.aeneas/service.json`, which only you can read. Requests with a browser `Origin` header, or a `Host` other than localhost, are refused, so web pages cannot drive it. It runs only the factory's own operations and recipes, reads inputs and writes outputs only under your home folder and never inside the factory, and never downloads anything. Model downloads go through `aen models download`, which checks every file's SHA-256 against [`models.json`](models.json). The explicit tools that take text (diagrams, SVG, music, dialogue) run under `sandbox-exec` with no network and writes only to a temporary folder beside the output; Mermaid is the exception, since headless Chrome sandboxes itself and cannot run inside another sandbox. Sonic Pi code is a Ruby program rather than notation, so it gets a tighter sandbox: network only on this machine's loopback (Sonic Pi's own parts talk over it), and nothing under your home folder can be read except its scratch folder, so it cannot read the service token, keys or documents. It runs with its own Sonic Pi home, never your `~/.sonic-pi`, and its mixer is muted, so nothing is played aloud. `aen tool` runs whatever you give it, as you, so pass `--sandbox DIR` for code you did not write. One scoring model (CLAP) exists only as a PyTorch pickle; it is pinned by SHA-256 and loaded with weights-only loading.
+The service listens on 127.0.0.1 only. Every request needs the token in `~/.aeneas/service.json`, which only you can read. Requests with a browser `Origin` header, or a `Host` other than localhost, are refused, so web pages cannot drive it. It runs only the factory's own operations and recipes, reads inputs and writes outputs only under your home folder and never inside the factory, and never downloads anything. Model downloads go through `aen models download`, which checks every file's SHA-256 against [`models.json`](models.json). The explicit tools that take text (diagrams, SVG, music, dialogue) run sandboxed (`sandbox-exec` on macOS, bubblewrap on Linux) with no network and writes only to a temporary folder beside the output; on Windows, which has no comparable sandbox, they run unsandboxed, since they read notation rather than run programs. Mermaid is the exception everywhere, since headless Chrome sandboxes itself and cannot run inside another sandbox. Sonic Pi code is a Ruby program rather than notation, so it gets a tighter sandbox: network only on this machine's loopback (Sonic Pi's own parts talk over it; on Linux a private loopback of its own), and nothing under your home folder can be read except its scratch folder, so it cannot read the service token, keys or documents. Without a sandbox (Windows, or Linux without bubblewrap) it is refused. It runs with its own Sonic Pi home, never your `~/.sonic-pi`, and its mixer is muted, so nothing is played aloud. `aen tool` runs whatever you give it, as you, so pass `--sandbox DIR` for code you did not write. One scoring model (CLAP) exists only as a PyTorch pickle; it is pinned by SHA-256 and loaded with weights-only loading.
 
 ## Development
 
 ```bash
-make test           # 43 tests, no models or GPU needed
+make test           # 54 tests, no models or GPU needed
 make vscode-test    # the editor extension: unit tests, then integration tests in a real VS Code
 python scripts/gen_docs.py --check    # the docs agree with models.json
 .venv/bin/python scripts/mcp_smoke.py ~/some/project    # the MCP path end to end
 ```
 
-GitHub Actions are turned off for this repository: run the checks above locally before pushing. The workflows are kept in [`.github/workflows`](.github/workflows) (tests and docs, a weekly check of every pinned download, an Apple Silicon build, the editor extension's release) for anyone who turns Actions on in a fork. The design and its reasons are in [`docs/design.md`](docs/design.md).
+CI ([`.github/workflows`](.github/workflows)) runs only on the owner's self-hosted Linux runner, never on GitHub-hosted (billed) runners: the tests, the docs check and the editor extension on every push to `main`, a weekly check that every pinned download still answers, and on request (*Run workflow*) a build of the engines and the extension's integration tests. Because the repository is public and the runner is a private machine, no workflow runs for pull requests, the token is read-only, only GitHub's own actions are used (pinned to commits), and nothing is fetched from Git LFS. In a fork, register your own runner or run the checks above locally. The design and its reasons are in [`docs/design.md`](docs/design.md).
 
 ## Troubleshooting
 
 - **A step failed its checks**: the error says why (blank, seam, silent). Try another seed or `--candidates 3`.
 - **Out of memory**: use `--size 768` or less for images and `--res 512` for 3D; the sound model alone takes about 14 GB.
 - **A download stopped**: run the same command again; it resumes and checks each file.
-- **Something broke after a macOS or Homebrew update**: `aen check --quick` shows what, `make clean-tools tools` rebuilds.
+- **Something broke after an OS, driver or package-manager update**: `aen check --quick` shows what, `make clean-tools tools` rebuilds.
+- **Slow images or 3D**: `aen check --quick` names the GPU backend; `cpu` means no CUDA toolkit or Vulkan SDK was found when building. Install one, then `make clean-tools tools` (or `AEN_GPU=vulkan make sd trellis moss`).
 - **An explicit tool fails**: `aen tools check NAME` shows what is wrong; `make explicit` installs anything missing.
 - Each output's `.log` holds the tool's own output.
 
 ## Licences
 
-The code and documents here are under the [MIT License](LICENSE), and so are the gallery images. Tools and models keep their own licences (tables above; per file in `models.json`). Z-Image Turbo, Qwen3-4B, FLUX.2 [klein] 4B, MOSS-SoundEffect and Kokoro are Apache-2.0; TRELLIS.2, BiRefNet and Real-ESRGAN are MIT or BSD. **TRELLIS.2's `dinov3.gguf` is under Meta's [DINOv3 License](https://ai.meta.com/resources/models-and-libraries/dinov3-license)**, so it downloads only with `ACCEPT=dinov3`. Using it counts as accepting that licence: commercial use is allowed; where DINOv3 or its derivatives are distributed, "Built with DINOv3" must be shown prominently with a copy of the licence; military, weapons and espionage uses and use by parties under trade controls are forbidden. 3D models made by this factory record "Built with DINOv3" in their provenance and credits; the gallery's 3D models are built with DINOv3. Scoring uses SigLIP rather than OpenAI's CLIP, whose model card puts any deployed use out of scope. Music rendered with the GeneralUser GS SoundFont may be used freely, commercially too (its licence, v2.0, covers the music made with it). Sonic Pi is MIT, its SuperSonic engine builds on SuperCollider (GPL-3.0), and the samples it ships are CC0 (from freesound.org), so Sonic Pi renders are yours to use. The explicit tools keep their own licences, several of them GPL or LGPL; that applies to the tools, not to the files you make with them. The 9B FLUX.2 klein models are non-commercial; this repository uses only the 4B one. Every record says what a model card states, which is not legal advice: whether you may use a generated file depends on where it goes.
+The code and documents here are under the [MIT License](LICENSE), and so are the gallery images. Tools and models keep their own licences (tables above; per file in `models.json`). Z-Image Turbo, Qwen3-4B, FLUX.2 [klein] 4B, MOSS-SoundEffect and Kokoro are Apache-2.0 (on Linux and Windows, Kokoro's English phonemizer and the espeak-ng it bundles are GPL-3.0 tools; that covers the tools, not the speech you make); TRELLIS.2, BiRefNet and Real-ESRGAN are MIT or BSD. **TRELLIS.2's `dinov3.gguf` is under Meta's [DINOv3 License](https://ai.meta.com/resources/models-and-libraries/dinov3-license)**, so it downloads only with `ACCEPT=dinov3`. Using it counts as accepting that licence: commercial use is allowed; where DINOv3 or its derivatives are distributed, "Built with DINOv3" must be shown prominently with a copy of the licence; military, weapons and espionage uses and use by parties under trade controls are forbidden. 3D models made by this factory record "Built with DINOv3" in their provenance and credits; the gallery's 3D models are built with DINOv3. Scoring uses SigLIP rather than OpenAI's CLIP, whose model card puts any deployed use out of scope. Music rendered with the GeneralUser GS SoundFont may be used freely, commercially too (its licence, v2.0, covers the music made with it). Sonic Pi is MIT, its SuperSonic engine builds on SuperCollider (GPL-3.0), and the samples it ships are CC0 (from freesound.org), so Sonic Pi renders are yours to use. The explicit tools keep their own licences, several of them GPL or LGPL; that applies to the tools, not to the files you make with them. The 9B FLUX.2 klein models are non-commercial; this repository uses only the 4B one. Every record says what a model card states, which is not legal advice: whether you may use a generated file depends on where it goes.
 
 ## Credits
 
-Built on [stable-diffusion.cpp](https://github.com/leejet/stable-diffusion.cpp), [trellis.cpp](https://github.com/pwilkin/trellis.cpp), [moss-soundeffect-mlx](https://github.com/xocialize/moss-soundeffect-mlx), [MLX](https://github.com/ml-explore/mlx), [mlx-audio](https://github.com/Blaizzy/mlx-audio), [rembg](https://github.com/danielgatis/rembg), [ComfyUI](https://github.com/Comfy-Org/ComfyUI), [ComfyUI-GGUF](https://github.com/city96/ComfyUI-GGUF), the [MCP Python SDK](https://github.com/modelcontextprotocol/python-sdk), and the model authors: Tongyi-MAI (Z-Image), Black Forest Labs (FLUX.2), Microsoft (TRELLIS.2), Meta (DINOv3), the BiRefNet authors, Qwen, OpenMOSS, hexgrad (Kokoro), Xintao Wang (Real-ESRGAN), Google (SigLIP) and LAION (CLAP). Thanks also to the GGUF and MLX converters: leejet, unsloth, ilintar and mlx-community.
+Built on [stable-diffusion.cpp](https://github.com/leejet/stable-diffusion.cpp), [trellis.cpp](https://github.com/pwilkin/trellis.cpp), [openmoss](https://github.com/pwilkin/openmoss), [moss-soundeffect-mlx](https://github.com/xocialize/moss-soundeffect-mlx), [MLX](https://github.com/ml-explore/mlx), [mlx-audio](https://github.com/Blaizzy/mlx-audio), [kokoro](https://github.com/hexgrad/kokoro), [PyTorch](https://pytorch.org/), [bubblewrap](https://github.com/containers/bubblewrap), [rembg](https://github.com/danielgatis/rembg), [ComfyUI](https://github.com/Comfy-Org/ComfyUI), [ComfyUI-GGUF](https://github.com/city96/ComfyUI-GGUF), the [MCP Python SDK](https://github.com/modelcontextprotocol/python-sdk), and the model authors: Tongyi-MAI (Z-Image), Black Forest Labs (FLUX.2), Microsoft (TRELLIS.2), Meta (DINOv3), the BiRefNet authors, Qwen, OpenMOSS, hexgrad (Kokoro), Xintao Wang (Real-ESRGAN), Google (SigLIP) and LAION (CLAP). Thanks also to the GGUF and MLX converters: leejet, unsloth, ilintar (Piotr Wilkin, also of trellis.cpp and openmoss) and mlx-community.
 
 The explicit tools: [ImageMagick](https://imagemagick.org/), [resvg](https://github.com/linebender/resvg), [librsvg](https://gitlab.gnome.org/GNOME/librsvg), [OpenCV](https://opencv.org/), [vtracer](https://github.com/visioncortex/vtracer), [coloraide](https://github.com/facelessuser/coloraide), [fontTools](https://github.com/fonttools/fonttools), [Graphviz](https://graphviz.org/), [D2](https://d2lang.com/), [Mermaid](https://mermaid.js.org/), [Vega-Lite](https://vega.github.io/vega-lite/), [abcMIDI](https://github.com/sshlien/abcmidi), [music21](https://github.com/cuthbertLab/music21), [pretty_midi](https://github.com/craffel/pretty-midi), [mido](https://github.com/mido/mido), [LilyPond](https://lilypond.org/), [FluidSynth](https://www.fluidsynth.org/) with [GeneralUser GS](https://github.com/mrbumpy409/GeneralUser-GS) by S. Christian Collins, [Csound](https://csound.com/), [SuperCollider](https://supercollider.github.io/), [Faust](https://faust.grame.fr/), [SoX](https://sourceforge.net/projects/sox/), [pedalboard](https://github.com/spotify/pedalboard), [moderngl](https://github.com/moderngl/moderngl), [opensimplex](https://github.com/lmas/opensimplex), [Taichi](https://www.taichi-lang.org/), [OpenSCAD](https://openscad.org/), [build123d](https://github.com/gumyr/build123d), [trimesh](https://github.com/mikedh/trimesh), [xatlas](https://github.com/jpcy/xatlas), [PyMeshLab](https://github.com/cnr-isti-vclab/PyMeshLab), [meshoptimizer/gltfpack](https://github.com/zeux/meshoptimizer), [glTF-Validator](https://github.com/KhronosGroup/glTF-Validator), [Basis Universal](https://github.com/BinomialLLC/basis_universal), [COLMAP](https://colmap.github.io/), [Blender](https://www.blender.org/), [pymunk](https://www.pymunk.org/), [MuJoCo](https://mujoco.org/), [Manim](https://www.manim.community/), [Tiled](https://www.mapeditor.org/), [Godot](https://godotengine.org/), [Ink](https://www.inklestudios.com/ink/) and [inkjs](https://github.com/y-lohse/inkjs) (inkle), [Yarn Spinner](https://www.yarnspinner.dev/), and [Sonic Pi](https://sonic-pi.net/) by Sam Aaron, with its CC0 samples from [freesound.org](https://freesound.org/).

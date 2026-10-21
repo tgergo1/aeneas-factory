@@ -2,7 +2,7 @@
 ##
 ##   ruby sonicpi_record.rb -o OUT.wav -d SECONDS [-f FILE.rb | -e CODE] [-s SEED] [-w WORKDIR]
 ##
-## Run it with the Ruby inside Sonic Pi.app. Sonic Pi 5's own headless-record.rb plays through the sound
+## Run it with the Ruby inside Sonic Pi (or the system's on Linux). Sonic Pi 5's own headless-record.rb plays through the sound
 ## card and sends its record commands over UDP, which its engine (SuperSonic 0.71) no longer listens to;
 ## and the engine's --headless mode stops recording after about a second. So:
 ## - Sonic Pi gets a throwaway home (SONIC_PI_HOME), so the user's ~/.sonic-pi is never touched;
@@ -14,8 +14,8 @@
 require "fileutils"
 require "tmpdir"
 
-APP = File.expand_path(ENV["AEN_SONIC_PI_APP"] || "/Applications/Sonic Pi.app")
-RES = File.join(APP, "Contents", "Resources")
+# Sonic Pi's folder holding etc/ and app/ (the factory passes it; Contents/Resources inside the macOS app)
+RES = File.expand_path(ENV["AEN_SONIC_PI_ROOT"] || "/Applications/Sonic Pi.app/Contents/Resources")
 USAGE = "Usage: sonicpi_record.rb -o OUT.wav -d SECONDS [-f FILE.rb | -e CODE] [-s SEED] [-w WORKDIR]"
 
 out = secs = code = seed = work = nil
@@ -37,7 +37,7 @@ abort USAGE unless out && secs
 abort "the length must be between 0.5 and 600 seconds" unless secs >= 0.5 && secs <= 600
 code = STDIN.read if code.nil?
 abort "no code (use -f, -e or stdin)" if code.strip.empty?
-abort "Sonic Pi is not installed at #{APP} (brew install --cask sonic-pi)" unless File.directory?(RES)
+abort "Sonic Pi 5 is not installed at #{RES} (see https://sonic-pi.net)" unless File.exist?(File.join(RES, "app", "server", "ruby", "bin", "headless_boot.rb"))
 
 work ||= Dir.mktmpdir("aen-sonic-pi")
 ENV["SONIC_PI_HOME"] = File.join(work, "home")

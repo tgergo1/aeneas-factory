@@ -1,5 +1,6 @@
-"""MOSS-SoundEffect through a persistent MLX worker: the model loads once and stays in memory
-until it has been idle for a while (it holds about 14 GB of GPU memory)."""
+"""MOSS-SoundEffect. On Apple Silicon through a persistent MLX worker: the model loads once and stays in
+memory until it has been idle for a while (it holds about 14 GB of GPU memory). Everywhere else through the
+openmoss C++/GGML runtime (moss-tts-cli: CUDA, Vulkan, ROCm or CPU), one process per take."""
 import json
 import os
 import subprocess
@@ -7,8 +8,8 @@ import threading
 import time
 from pathlib import Path
 
-from .. import registry
-from ..paths import MOSS_PY, portable
+from .. import host, registry
+from ..paths import MOSS_PY, OPENMOSS_CLI, portable
 from . import Cancelled, EngineError
 
 WORKER = Path(__file__).with_name("moss_worker.py")
@@ -86,3 +87,30 @@ def worker():
 
 def params(seconds, steps, cfg):
     return {"seconds": seconds, "steps": steps, "cfg": cfg, "sample_rate": 48000}
+
+
+def model_id():
+    """The MOSS-SoundEffect variant for this machine: moss-sfx (MLX) or moss-sfx-gguf (openmoss)."""
+    return registry.pick("moss-sfx", "moss-sfx-gguf")
+
+
+def tool():
+    return "moss-soundeffect-mlx" if model_id() == "moss-sfx" else "openmoss"
+
+
+def generate(prompt, seconds, steps, cfg, seed, out, log_path, ctx):
+    """One take. Returns the command to record in the provenance."""
+    if model_id() == "moss-sfx":
+        worker().generate(prompt, seconds, steps, cfg, seed, out, log_path, ctx.cancelled)
+        return ["moss worker", f"seed={seed}"]
+    if not OPENMOSS_CLI.exists():
+        raise EngineError("openmoss is not built. Run: make moss  (python install.py moss)")
+    registry.require("moss-sfx-gguf")
+    cmd = [OPENMOSS_CLI, "--model", registry.model_path("moss-sfx-gguf", "moss-soundeffect-2.0.gguf"), "--text", prompt,
+           "--seconds", str(seconds), "--steps", str(steps), "--cfg-scale", str(cfg), "--seed", str(seed), "--output", out]
+    if host.gpu() == "vulkan":
+        cmd.append("--vk-f32")  # f32 accumulation on Vulkan: f16 is 16x less accurate on the decoded waveform
+    ctx.runner.run(cmd, log_path)
+    if not Path(out).exists():
+        raise EngineError(f"moss-tts-cli wrote no audio; see {portable(log_path)}")
+    return cmd

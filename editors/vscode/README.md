@@ -2,7 +2,7 @@
 
 Make, preview and trace game and media assets without leaving the editor. The extension is a thin client of the [Aeneas Factory](https://github.com/tgergo1/aeneas-factory) service on your Mac: generation, checks, provenance and the asset library all stay in the factory, so the editor, the command line and AI agents (over MCP) share one queue, one library and one set of records.
 
-**It needs [Aeneas Factory](https://github.com/tgergo1/aeneas-factory) 0.4 or later installed on an Apple Silicon Mac**; without the factory it can do nothing, so it is offered for macOS on Apple Silicon only. It works in VS Code 1.95 or later, Cursor, Windsurf and VSCodium. This is a preview: expect changes.
+**It needs [Aeneas Factory](https://github.com/tgergo1/aeneas-factory) 0.5 or later installed** (macOS, Linux or Windows); without the factory it can do nothing. It works in VS Code 1.95 or later, Cursor, Windsurf and VSCodium. This is a preview: expect changes.
 
 ## What it adds
 
@@ -45,12 +45,12 @@ Live previews do not add to the asset library; **Aeneas: Render Source to Asset*
 npm ci
 npm test              # unit tests, then the integration tests in a real VS Code (a throwaway profile)
 npm run tour -- DIR   # a step-by-step tour of the views over DIR, for screenshots (touch the printed file to step)
-npm run package       # aeneas-factory.vsix (macOS, Apple Silicon)
+npm run package       # aeneas-factory.vsix (one package for every OS)
 ```
 
-Releases: GitHub Actions are turned off for this repository, so release by hand: bump `version` in `package.json`, `npm run package`, then `gh release create vscode-v<version> aeneas-factory.vsix --prerelease` (and `npx vsce publish --packagePath …` / `npx ovsx publish …` for the stores). With Actions on, pushing a tag `vscode-v<version>` runs [the release workflow](../../.github/workflows/release-vscode.yml), which checks the tag against the version, runs the unit tests, packages the extension, attaches the `.vsix` to a GitHub release, and publishes it to the VS Code Marketplace and Open VSX when the repository has the secrets `VSCE_PAT` and `OVSX_PAT`.
+Releases: bump `version` in `package.json`, commit, and push a tag `vscode-v<version>`. [The release workflow](../../.github/workflows/release-vscode.yml) runs on the owner's self-hosted Linux runner (no GitHub-hosted runners): it checks the tag against the version, runs the unit tests, packages the extension, attaches the `.vsix` to a GitHub release, and publishes it to the VS Code Marketplace and Open VSX when the repository has the secrets `VSCE_PAT` and `OVSX_PAT`. By hand: `npm run package`, then `gh release create vscode-v<version> aeneas-factory.vsix --prerelease`.
 
-The integration tests use the installed VS Code (or a downloaded one with `AEN_VSCODE=download`) and the running factory service, and work in a temporary folder under `~/.aeneas`.
+The integration tests use the installed VS Code (or download one, also with `AEN_VSCODE=download`) and the running factory service, and work in a temporary folder under `~/.aeneas`. On Linux without a display run them under a virtual one: `xvfb-run -a npm test`.
 
 ## Licence
 

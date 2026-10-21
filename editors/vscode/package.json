@@ -1,8 +1,8 @@
 {
   "name": "aeneas-factory",
   "displayName": "Aeneas Factory",
-  "description": "Needs Aeneas Factory 0.4 or later on an Apple Silicon Mac. Generate, preview and trace images, textures, 3D models, sound, music, diagrams and dialogue in the editor, through the local factory service.",
-  "version": "0.1.0",
+  "description": "Needs Aeneas Factory 0.5 or later (macOS, Linux or Windows). Generate, preview and trace images, textures, 3D models, sound, music, diagrams and dialogue in the editor, through the local factory service.",
+  "version": "0.2.0",
   "publisher": "aeneas-factory",
   "license": "MIT",
   "repository": {
@@ -371,7 +371,7 @@
     "test:unit": "mocha --ui tdd out-test/test/unit/*.test.js",
     "pretest": "tsc -p tsconfig.test.json && node esbuild.mjs",
     "test": "npm run test:unit && node out-test/test/run.js",
-    "package": "node esbuild.mjs --production && vsce package --no-dependencies --target darwin-arm64 -o aeneas-factory.vsix",
+    "package": "node esbuild.mjs --production && vsce package --no-dependencies -o aeneas-factory.vsix",
     "tour": "tsc -p tsconfig.test.json && node esbuild.mjs && node out-test/test/run-tour.js"
   },
   "devDependencies": {
@@ -389,6 +389,6 @@
   },
   "preview": true,
   "aeneas": {
-    "minimumFactory": "0.4.0"
+    "minimumFactory": "0.5.0"
   }
 }

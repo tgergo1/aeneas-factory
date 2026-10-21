@@ -221,22 +221,22 @@ def sfx(prompt, out, seconds=5.0, steps=100, cfg=4.0, seed=None, candidates=1, m
     st = styles.find(style, near=out) if style else None
     prompt2 = prompt + (st.get("sfx_suffix", "") if st else "")
     seed = _seed(seed)
-    pol = policy.check_models(["moss-sfx"], out)
-    w = moss.worker()
+    mid = moss.model_id()
+    pol = policy.check_models([mid], out)
 
     def make_one(p, s, i, n):
         ctx.progress(i / n, f"sound {i + 1}/{n}, seed {s}")
         started = provenance.datetime.datetime.now().astimezone()
         raw = p.with_name(p.stem + "_raw.wav") if master else p
-        reply = w.generate(prompt2, seconds, steps, cfg, s, raw, p.with_name(p.name + ".log"), ctx.cancelled)
+        cmd = moss.generate(prompt2, seconds, steps, cfg, s, raw, p.with_name(p.name + ".log"), ctx)
         params = moss.params(seconds, steps, cfg)
         if master:
             ctx.runner.run(post.loudness_command(raw, p), p.with_name(p.name + ".log"))
             raw.unlink(missing_ok=True)
             params["mastered"] = "trimmed silence, loudness -18 LUFS, peak -1 dBTP"
         found = checks.audio(p)
-        return provenance.record(p, "bin/ai-sfx", ["moss-sfx"], ["moss-soundeffect-mlx"],
-                                 ["moss worker", f"seed={s}"], started, prompt=prompt2, seed=s, params=params,
+        return provenance.record(p, "bin/ai-sfx", [mid], [moss.tool()],
+                                 cmd, started, prompt=prompt2, seed=s, params=params,
                                  checks=found, style=styles.summary(st)) | {"policy": pol}
 
     score = (lambda paths: scoring.audio_scores(paths, prompt2)) if scoring.available("audio") else None

@@ -8,7 +8,7 @@ import { blenderArgs } from "../../src/core/blender";
 import { jobTitle, resultFile } from "../../src/core/jobs";
 import { errorLine, outputPath, problemText, renderTarget, slug } from "../../src/core/outputs";
 import { recordFor, remakeSpec, summarize } from "../../src/core/provenance";
-import { Client, findFactory, Job, olderThan, readInfo, ServiceError } from "../../src/core/service";
+import { Client, factoryPython, findFactory, Job, olderThan, readInfo, ServiceError } from "../../src/core/service";
 
 const REPO = path.resolve(__dirname, "../../../../..");
 const GALLERY = path.join(REPO, "docs", "gallery");
@@ -68,7 +68,9 @@ suite("provenance", () => {
     assert.strictEqual(tune.policy, "none (no .aeneas/policy.toml in the project)");
   });
 
-  test("checks the file against its recorded checksum", () => {
+  test("checks the file against its recorded checksum", function () {
+    // CI checks out without Git LFS (its bandwidth is billable): then the picture is only a pointer file
+    if (fs.readFileSync(path.join(GALLERY, "explicit", "potion.png")).subarray(0, 24).toString().startsWith("version https://git-lfs")) this.skip();
     const sha = (f: string) => require("crypto").createHash("sha256").update(fs.readFileSync(f)).digest("hex");
     assert.strictEqual(summarize(path.join(GALLERY, "explicit", "potion.png.json"), sha).verified, true);
     assert.strictEqual(summarize(path.join(GALLERY, "explicit", "potion.png.json"), () => "0").verified, false);
@@ -196,5 +198,13 @@ suite("versions", () => {
     assert.ok(!olderThan("0.10.0", "0.4.0"));
     assert.ok(!olderThan("1.0.0rc1", "0.4.0"));
     assert.ok(olderThan("", "0.4.0"));
+  });
+});
+
+suite("platforms", () => {
+  test("runs the factory's own Python on every OS", () => {
+    assert.strictEqual(factoryPython("/f", "linux"), path.join("/f", ".venv", "bin", "python"));
+    assert.strictEqual(factoryPython("/f", "darwin"), path.join("/f", ".venv", "bin", "python"));
+    assert.strictEqual(factoryPython("/f", "win32"), path.join("/f", ".venv", "Scripts", "python.exe"));
   });
 });

@@ -1,0 +1,42 @@
+# Debian and Ubuntu (checked against Debian 13 "trixie" and Ubuntu 24.04): sudo apt-get install ...
+# Build tools for the C++ engines
+build-essential
+cmake
+ninja-build
+git
+curl
+pkg-config
+glslc            # Vulkan builds (AEN_GPU=vulkan)
+libvulkan-dev    # Vulkan builds
+# Runtime helpers
+ffmpeg           # sound mastering, previews
+bubblewrap       # the sandbox for the explicit tools
+nodejs           # Mermaid, Vega-Lite, Ink, gltfpack
+npm
+ruby             # Sonic Pi's recorder when Sonic Pi brings no Ruby of its own
+libcairo2-dev    # manim (pycairo)
+libpango1.0-dev  # manim (ManimPango)
+# Explicit tools
+imagemagick
+graphviz
+resvg
+librsvg2-bin     # rsvg-convert
+fluidsynth
+abcmidi
+lilypond
+csound
+faust
+sox
+lame
+supercollider-language   # sclang
+openscad
+colmap
+tiled            # tiled and tmxrasterizer
+blender
+gimp
+# Not in the Debian/Ubuntu archive (install by hand if you need them):
+#   d2: https://d2lang.com (curl -fsSL https://d2lang.com/install.sh | sh -s --)
+#   basisu: https://github.com/BinomialLLC/basis_universal/releases
+#   .NET SDK 8+ (Yarn Spinner): Ubuntu: sudo apt install dotnet-sdk-8.0; Debian: https://learn.microsoft.com/dotnet/core/install/linux
+#   Godot 4: https://godotengine.org/download (the archive has only Godot 3)
+#   Sonic Pi 5: https://sonic-pi.net (the archive has Sonic Pi 3)

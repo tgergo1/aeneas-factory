@@ -1,0 +1,17 @@
+# Homebrew on Linux (the Brewfile's formulae; casks are macOS only)
+node
+dotnet
+imagemagick
+graphviz
+d2
+resvg
+librsvg
+fluid-synth
+abcmidi
+lilypond
+csound
+faust
+sox
+lame
+basis_universal
+colmap

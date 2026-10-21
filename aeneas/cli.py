@@ -171,12 +171,16 @@ def cmd_check(a):
         results.append(state)
         print(f"{state:4}  {name}{'  ' + detail if detail else ''}", flush=True)
 
-    import platform
-    from .paths import KOKORO_PY, MOSS_PY, SD_CLI, TRELLIS_CLI
-    mac = platform.system() == "Darwin" and platform.machine() == "arm64"
-    report("PASS" if mac else "WARN", "macOS on Apple Silicon", f"{platform.system()} {platform.machine()}")
-    for name, path, target in [("sd-cli", SD_CLI, "sd"), ("trellis-cli", TRELLIS_CLI, "trellis"),
-                               ("MOSS env", MOSS_PY, "moss"), ("Kokoro env (optional)", KOKORO_PY, "speech")]:
+    from . import host
+    from .engines import moss
+    from .paths import KOKORO_PY, MOSS_PY, OPENMOSS_CLI, SD_CLI, TRELLIS_CLI
+    hs = host.summary()
+    gpu_ok = hs["gpu"] != "cpu"
+    report("PASS" if gpu_ok else "WARN", "machine", f"{hs['os']} {hs['arch']}, GPU backend {hs['gpu']}, sandbox {hs['sandbox']}"
+           + ("" if gpu_ok else ": no GPU found; images are slow and 3D takes hours on the CPU"))
+    sound = ("MOSS env (MLX)", MOSS_PY, "moss") if moss.model_id() == "moss-sfx" else ("moss-tts-cli (openmoss)", OPENMOSS_CLI, "moss")
+    for name, path, target in [("sd-cli", SD_CLI, "sd"), ("trellis-cli", TRELLIS_CLI, "trellis"), sound,
+                               ("Kokoro env (optional)", KOKORO_PY, "speech")]:
         ok = Path(path).exists()
         report("PASS" if ok else "SKIP", name, portable(path) if ok else f"not built: make {target}")
     for name, path in [("Blender", blender()), ("ffmpeg", ffmpeg()), ("GIMP (optional)", gimp())]:
@@ -195,7 +199,7 @@ def cmd_check(a):
             ("klein", "image  flux2-klein-4b, 512 px, 4 steps", ["flux2-klein-4b"], lambda: ops.image(
                 "a red apple on a wooden table", tmp / "klein.png", model="flux2-klein-4b", size=512, steps=4,
                 seed=1, ctx=ctx)),
-            ("sfx", "sfx    2 s, 10 steps, mastered", ["moss-sfx"], lambda: ops.sfx(
+            ("sfx", "sfx    2 s, 10 steps, mastered", [moss.model_id()], lambda: ops.sfx(
                 "a wooden door knocks twice", tmp / "sfx.wav", seconds=2, steps=10, seed=1, ctx=ctx)),
             ("3d", "3d     res 512 from the test image (about 5 minutes)", ["trellis2"], lambda: ops.model3d(
                 img, tmp / "model.glb", res="512", seed=1, preview=False, ctx=ctx)),
@@ -319,6 +323,18 @@ def cmd_dialogue(a):
     _print(_run_op(a, "dialogue", dict(source=_src(a), kind=a.kind, out=_p(a.out))))
 
 
+
+def cmd_where(a):
+    """Where an app or program is installed on this machine (the editor extension asks this)."""
+    from . import host
+    if a.name == "machine":
+        _print(host.summary())
+        return
+    found = host.find_app(a.name)
+    if not found:
+        sys.exit(f"{a.name} was not found")
+    print(found)
+
 def cmd_tools(a):
     from . import explicit
     if a.action == "list":
@@ -428,6 +444,9 @@ def main(argv=None):
     p.add_argument("source"); p.add_argument("-o", "--out", required=True)
     p.add_argument("--kind", choices=["ink", "yarn"], default="ink")
     p.add_argument("--local", action="store_true"); p.set_defaults(func=cmd_dialogue)
+
+    p = sub.add_parser("where", help="where an app is installed (blender, gimp, gimp-app, godot, ...), or `machine`")
+    p.add_argument("name"); p.set_defaults(func=cmd_where)
 
     p = sub.add_parser("tools", help="explicit tools (code in, asset out): list, check [NAME...]")
     p.add_argument("action", choices=["list", "check"]); p.add_argument("names", nargs="*"); p.add_argument("--keep")

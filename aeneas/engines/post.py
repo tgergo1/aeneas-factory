@@ -18,7 +18,7 @@ SCRIPTS = ROOT / "scripts"
 def blender_command(script, *args):
     b = blender()
     if not b:
-        raise EngineError("Blender is needed for this step (set AEN_BLENDER, or install it in /Applications)")
+        raise EngineError("Blender is needed for this step: install it from https://www.blender.org (or set AEN_BLENDER to its path)")
     return [b, "-b", "--factory-startup", "--python", SCRIPTS / script, "--", *map(str, args)]
 
 

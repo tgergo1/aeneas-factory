@@ -6,7 +6,7 @@
 set -eu
 cd "$(dirname "$0")/.."
 G=docs/gallery
-BLENDER="${BLENDER:-/Applications/Blender.app/Contents/MacOS/Blender}"
+BLENDER="${BLENDER:-$(PYTHONPATH=. python3 -c 'from aeneas import host; print(host.find_app("blender") or "blender")')}"
 mkdir -p "$G"
 cd "$G"
 B=../../bin

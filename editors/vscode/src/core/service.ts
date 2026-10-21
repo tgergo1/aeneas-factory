@@ -88,7 +88,7 @@ export function findFactory(setting: string | undefined, info: ServiceInfo | nul
   if (setting) candidates.push(setting.replace(/^~(?=$|\/)/, os.homedir()));
   if (info?.root) candidates.push(info.root);
   for (const dir of envPath.split(path.delimiter)) {
-    const aen = path.join(dir, "aen");
+    const aen = path.join(dir, process.platform === "win32" ? "aen.cmd" : "aen");
     try {
       candidates.push(path.dirname(path.dirname(fs.realpathSync(aen))));
     } catch {
@@ -193,6 +193,11 @@ export class Client {
   }
 }
 
+/** The factory's own Python (its .venv), which runs `python -m aeneas ...` on every OS. */
+export function factoryPython(factory: string, platform = process.platform): string {
+  return platform === "win32" ? path.join(factory, ".venv", "Scripts", "python.exe") : path.join(factory, ".venv", "bin", "python");
+}
+
 /** A client for the running service, or undefined when it is not running. */
 export async function connect(dir = stateDir()): Promise<Client | undefined> {
   const info = readInfo(dir);
@@ -213,7 +218,7 @@ export async function ensureRunning(factory: string | undefined, dir = stateDir(
   if (!factory) {
     throw new ServiceError("The factory service is not running and the factory was not found. Set aeneas.factoryPath to your aeneas-factory folder.");
   }
-  const child = spawn(path.join(factory, "bin", "aen"), ["service", "start"], { detached: true, stdio: "ignore" });
+  const child = spawn(factoryPython(factory), ["-m", "aeneas", "service", "start"], { cwd: factory, detached: true, stdio: "ignore", windowsHide: true });
   child.unref();
   const until = Date.now() + waitMs;
   while (Date.now() < until) {

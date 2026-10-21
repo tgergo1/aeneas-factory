@@ -1,6 +1,6 @@
 """Render a .glb to a PNG preview with Blender, headless.
 
-  /Applications/Blender.app/Contents/MacOS/Blender -b --factory-startup \
+  blender -b --factory-startup \
       --python scripts/render_glb.py -- model.glb preview.png [size]
 
 A three-quarter view on a transparent background, soft studio light, Cycles on the GPU.
@@ -51,11 +51,19 @@ scene.world = world
 
 scene.render.engine = "CYCLES"
 prefs = bpy.context.preferences.addons["cycles"].preferences
-prefs.compute_device_type = "METAL"
-prefs.get_devices()
-for d in prefs.devices:
-    d.use = True
-scene.cycles.device = "GPU"
+gpu = False
+for kind in ("METAL", "OPTIX", "CUDA", "HIP", "ONEAPI"):  # whichever GPU backend this machine has; else the CPU
+    try:
+        prefs.compute_device_type = kind
+    except TypeError:
+        continue
+    prefs.get_devices()
+    if any(d.type != "CPU" for d in prefs.devices):
+        for d in prefs.devices:
+            d.use = True
+        gpu = True
+        break
+scene.cycles.device = "GPU" if gpu else "CPU"
 scene.cycles.samples = 96
 scene.cycles.use_denoising = True
 scene.render.film_transparent = True
